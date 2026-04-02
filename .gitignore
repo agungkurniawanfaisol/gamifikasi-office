@@ -23,6 +23,7 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+*:Zone.Identifier
 
 # Local SQLite database (do not commit)
 /testing
