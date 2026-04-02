@@ -8,12 +8,19 @@ import { PropsWithChildren, ReactNode, useState } from 'react';
 export default function Authenticated({
     header,
     children,
-}: PropsWithChildren<{ header?: ReactNode }>) {
+    examMode = false,
+}: PropsWithChildren<{ header?: ReactNode; examMode?: boolean }>) {
     const user = usePage().props.auth.user!;
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
     return (
-        <div className="h-screen overflow-hidden bg-gradient-to-b from-gray-100 to-gray-50">
+        <div
+            className={
+                examMode
+                    ? 'h-dvh max-h-dvh overflow-hidden bg-[#0f172a]'
+                    : 'h-screen overflow-hidden bg-gradient-to-b from-gray-100 to-gray-50'
+            }
+        >
             <MobileSidebarDrawer
                 open={mobileSidebarOpen}
                 onClose={() => setMobileSidebarOpen(false)}
@@ -25,8 +32,20 @@ export default function Authenticated({
                 }
             />
 
-            <div className="flex h-screen">
-                <aside className="hidden w-72 shrink-0 border-r border-gray-200/80 bg-white md:block">
+            <div
+                className={
+                    examMode
+                        ? 'flex h-dvh min-h-0'
+                        : 'flex h-screen'
+                }
+            >
+                <aside
+                    className={
+                        examMode
+                            ? 'hidden'
+                            : 'hidden w-72 shrink-0 border-r border-gray-200/80 bg-white md:block'
+                    }
+                >
                     <div className="flex h-16 items-center gap-2 border-b border-gray-100 px-5">
                         <Link href="/" className="flex items-center gap-2">
                             <ApplicationLogo className="h-7 w-7 fill-current text-gray-900" />
@@ -40,10 +59,17 @@ export default function Authenticated({
                     </div>
                 </aside>
 
-                <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-                    <nav className="sticky top-0 z-40 border-b border-gray-100/80 bg-white/95 backdrop-blur">
+                <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+                    <nav
+                        className={
+                            examMode
+                                ? 'z-40 shrink-0 border-b border-white/10 bg-slate-900/90 backdrop-blur-md'
+                                : 'sticky top-0 z-40 border-b border-gray-100/80 bg-white/95 backdrop-blur'
+                        }
+                    >
                         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
                             <div className="flex items-center gap-2">
+                                {!examMode && (
                                 <button
                                     type="button"
                                     className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 md:hidden"
@@ -64,17 +90,41 @@ export default function Authenticated({
                                         />
                                     </svg>
                                 </button>
+                                )}
 
-                                <div className="flex items-center gap-2 md:hidden">
+                                <div
+                                    className={
+                                        examMode
+                                            ? 'flex items-center gap-2'
+                                            : 'flex items-center gap-2 md:hidden'
+                                    }
+                                >
                                     <Link
                                         href="/"
                                         className="flex items-center gap-2"
                                     >
-                                        <ApplicationLogo className="h-7 w-7 fill-current text-gray-900" />
-                                        <span className="text-sm font-semibold text-gray-900">
+                                        <ApplicationLogo
+                                            className={
+                                                examMode
+                                                    ? 'h-7 w-7 fill-current text-teal-400'
+                                                    : 'h-7 w-7 fill-current text-gray-900'
+                                            }
+                                        />
+                                        <span
+                                            className={
+                                                examMode
+                                                    ? 'text-sm font-semibold text-white'
+                                                    : 'text-sm font-semibold text-gray-900'
+                                            }
+                                        >
                                             Gamifikasi
                                         </span>
                                     </Link>
+                                    {examMode && (
+                                        <span className="hidden rounded-full border border-teal-500/40 bg-teal-500/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-teal-300 sm:inline">
+                                            Mode ujian
+                                        </span>
+                                    )}
                                 </div>
                             </div>
 
@@ -85,9 +135,19 @@ export default function Authenticated({
                                             <span className="inline-flex rounded-md">
                                                 <button
                                                     type="button"
-                                                    className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-700 transition hover:bg-gray-50 hover:text-gray-900 focus:outline-none"
+                                                    className={
+                                                        examMode
+                                                            ? 'inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm font-medium leading-4 text-white transition hover:bg-white/15 focus:outline-none'
+                                                            : 'inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-700 transition hover:bg-gray-50 hover:text-gray-900 focus:outline-none'
+                                                    }
                                                 >
-                                                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-900 text-xs font-semibold text-white">
+                                                    <span
+                                                        className={
+                                                            examMode
+                                                                ? 'inline-flex h-7 w-7 items-center justify-center rounded-full bg-teal-500 text-xs font-semibold text-white'
+                                                                : 'inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-900 text-xs font-semibold text-white'
+                                                        }
+                                                    >
                                                         {user.name.charAt(0).toUpperCase()}
                                                     </span>
                                                     {user.name}
@@ -128,14 +188,26 @@ export default function Authenticated({
                     </nav>
 
                     {header && (
-                        <header className="border-b border-gray-100 bg-white/90">
+                        <header
+                            className={
+                                examMode
+                                    ? 'border-b border-white/10 bg-slate-900/50'
+                                    : 'border-b border-gray-100 bg-white/90'
+                            }
+                        >
                             <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                                 {header}
                             </div>
                         </header>
                     )}
 
-                    <main className="min-w-0 flex-1 overflow-y-auto">
+                    <main
+                        className={
+                            examMode
+                                ? 'min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-y-contain bg-[#0f172a]'
+                                : 'min-w-0 flex-1 overflow-y-auto'
+                        }
+                    >
                         {children}
                     </main>
                 </div>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Lecturer\QuestionController as LecturerQuestionController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Student\ExamFocusEventController;
 use App\Http\Controllers\Student\ExamSessionController as StudentExamSessionController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -52,6 +53,7 @@ Route::middleware(['auth', 'verified', 'role:student'])->prefix('student')->name
     Route::get('/exams', [StudentExamSessionController::class, 'index'])->name('exams.index');
     Route::get('/rankings', [StudentExamSessionController::class, 'rankings'])->name('rankings.index');
     Route::post('/exams/start', [StudentExamSessionController::class, 'start'])->name('exams.start');
+    Route::post('/exams/{examSession}/focus-events', [ExamFocusEventController::class, 'store'])->name('exams.focus-events.store');
     Route::get('/exams/{examSession}/feedback', [StudentExamSessionController::class, 'feedback'])->name('exams.feedback');
     Route::post('/exams/{examSession}/feedback', [StudentExamSessionController::class, 'storeFeedback'])->name('exams.feedback.store');
     Route::get('/exams/{examSession}', [StudentExamSessionController::class, 'show'])->name('exams.show');
