@@ -65,6 +65,14 @@ Create the first admin user:
 docker compose exec laravel.test php artisan app:make-admin
 ```
 
+## Testing
+
+- **PHP (Pest + PHPUnit):** `docker compose exec laravel.test php artisan test` (atau `composer test` jika PHP tersedia di host).
+- **TypeScript (Vitest):** `npm run test` — menjalankan file `resources/js/**/*.test.{ts,tsx}`.
+- **Keduanya:** `npm run test:all` (membutuhkan `php` di PATH; di WSL tanpa PHP, jalankan perintah PHP dan npm secara terpisah).
+
+Tambahkan uji baru: PHP di `tests/Feature` / `tests/Unit` dengan sintaks Pest (`it(...)`) atau PHPUnit; frontend di `resources/js/**/__tests__/*.test.tsx`.
+
 ## Deploy ke Hostinger (PHP + MySQL)
 
 Project ini tidak perlu compile backend. Yang dibuild hanya aset frontend Vite.
