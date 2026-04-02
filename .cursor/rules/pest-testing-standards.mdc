@@ -1,0 +1,60 @@
+---
+description: Pest testing standards for data integrity, performance, and security
+alwaysApply: true
+---
+
+# Pest Testing Standards (Gamifikasi)
+
+Use **Pest** as the default testing style for this project. Prioritize feature/integration behavior over isolated unit mocks for critical flows.
+
+## 1. Test stack and structure
+
+- Write tests in `tests/Feature` and `tests/Unit` using Pest syntax (`it()`, `describe()`, datasets).
+- Prefer **Feature tests** for HTTP flows, RBAC, validation, and DB persistence.
+- Keep test names behavior-focused (e.g., `it('prevents student from accessing admin users index')`).
+
+## 2. Database integrity testing
+
+- Use `RefreshDatabase` for deterministic DB state.
+- Assert full persistence for transactional writes (questions, options, submissions, scoring).
+- Validate relational integrity (`assertDatabaseHas`, `assertDatabaseMissing`) including FK-linked records.
+- For seed-generated data, assert:
+  - minimum expected counts,
+  - balanced distribution across skill/level,
+  - type-specific integrity (MC/TF options count and single correct answer).
+
+## 3. Validation and authorization coverage
+
+- Every FormRequest must have failing and passing path assertions.
+- Test role-based access for all sensitive routes:
+  - admin-only routes denied to lecturer/student,
+  - lecturer-only routes denied to student,
+  - unauthenticated users redirected/blocked.
+- Add policy/gate tests when model-level authorization is used.
+
+## 4. Performance-aware assertions
+
+- Avoid N+1 in high-traffic endpoints by asserting eager loading behavior via expected query patterns when practical.
+- Use factories/seeders to create realistic data volumes (pagination and filter scenarios).
+- Keep endpoint responses constrained to required columns/fields in API/Inertia payload assertions.
+
+## 5. Security and anti-cheat tests
+
+- Cover focus-mode event reporting endpoints (`visibilitychange`, `blur`) with authenticated and unauthorized scenarios.
+- Assert server-side enforcement of penalties/rules (never trust client flags).
+- Ensure tampered payloads cannot mutate protected fields (score, badge state, ownership).
+
+## 6. External services and async work
+
+- Fake queues/events/notifications where side effects are expected (`Queue::fake()`, `Event::fake()`).
+- For Gemini integration, test dispatch and status transitions without calling real APIs.
+- Assert jobs are queued with correct payload and model references.
+
+## 7. Required baseline for new features
+
+When adding a feature, include at least:
+- 1 happy-path feature test,
+- 1 validation failure test,
+- 1 authorization failure test,
+- 1 DB integrity assertion for persisted side effects.
+

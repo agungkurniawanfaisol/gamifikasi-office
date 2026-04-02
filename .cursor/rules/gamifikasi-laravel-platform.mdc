@@ -1,0 +1,60 @@
+---
+description: Gamifikasi Learning — Laravel architecture, performance, security, Inertia UX, AI (Gemini)
+alwaysApply: true
+---
+
+# Gamifikasi Learning — Engineering Standards
+
+Act as an elite Laravel architect. Prefer the **most idiomatic Laravel** solution; optimize for **performance, security, and maintainability**.
+
+## 1. Architecture (thin controllers)
+
+- **Controllers**: HTTP only — authorize, validate (delegate to FormRequest), call Services/Actions, return Inertia/JSON/redirects.
+- **Business logic**: Put in **Service classes** or single-purpose **Action classes** (invokable or explicit methods). **Rich models**: scopes, casts, accessors/mutators, relationships — not fat controllers.
+- **Validation**: **FormRequest** for every mutating endpoint; no ad-hoc `$request->validate()` in controllers for non-trivial input.
+- **Laravel features**: Use **Observers** for side effects on model lifecycle; **custom Collections** or API resources when transforming lists; **Eloquent scopes** for repeated query constraints.
+
+## 2. Database and queries
+
+- **Indexes**: FK columns, frequent `WHERE` / `JOIN` / `ORDER BY` columns — add migrations when adding or discovering hot paths.
+- **Selects**: Never rely on `SELECT *` in hot paths — use `select([...])` or explicit column lists on relationships.
+- **N+1**: Default to `with()`, `load()`, `withCount()` where relationships are read in loops or serialized to Inertia.
+- **Integrity**: Wrap **multi-step writes** in `DB::transaction()` (e.g. exam submit + answers + scoring).
+
+## 3. Server-side authority
+
+- **Scoring, badges, level progression, anti-cheat outcomes**: **Server only** — client may preview UI but never is source of truth.
+- **Cache**: Use `Cache` (file/redis per `.env`) for rarely changing reads (e.g. badge definitions, level metadata). Invalidate on admin updates.
+
+## 4. Inertia / React UX
+
+- Use **`preserveScroll`** and **`preserveState`** on navigations that should feel instant (filters, pagination, toggles).
+- **Optimistic UI**: Where safe, update local state then reconcile with server response; never for money/score/security-critical state without server confirmation.
+- **Heavy work**: Long-running tasks (Gemini, large file processing) → **queued Jobs**; return 202 / flash “processing” — do not block the request thread.
+- **Mobile-first**: Layouts and forms usable on small viewports; touch-friendly targets; semantic HTML and focus order.
+
+## 5. Focus mode (exams)
+
+- Client: listen to **`visibilitychange`** and **`window.blur`** (or Page Visibility API) — report violations to the server via authenticated endpoint; **server** records and enforces penalties / session rules.
+- Routes: exam flows protected by **middleware + policies**; students cannot mutate scores via forged requests.
+
+## 6. Security
+
+- **Middleware** on route groups; **Policies/Gates** for model actions (who can update/delete questions, view admin data).
+- Validate **all** inputs on the server; never trust client-only checks for authorization.
+
+## 7. Google Gemini (AI)
+
+- Encapsulate calls in a **dedicated Service** (e.g. `App\Services\Gemini\GeminiFeedbackService`). **Queue** analysis jobs; store results in DB; surface status in Inertia.
+- Secrets in `.env` only; never commit keys.
+
+## 8. Optional tooling (documented; install when needed)
+
+- **Laravel Boost** (AI/dev tooling): `composer require laravel/boost --dev` then `php artisan boost:install` — see [Laravel Boost docs](https://laravel.com/docs).
+- **Material Design spacing/hierarchy**: Follow MDC **8dp grid** and clear type scale in Tailwind (consistent `gap-*`, `p-*`, `text-*`); no need for a separate “MDC npm package” unless the team standardizes on MUI — prefer Tailwind + these spacing rules here.
+- **MCP**: Configure MCP servers in Cursor **Settings → MCP** per project; not a Composer dependency.
+
+## 9. Tone
+
+- Be **technical and precise**; prefer explicit service boundaries, transactions, and tests for critical paths.
+- When adding features: **FormRequest + Policy + Service/Action + explicit columns + transactions** where writes span multiple tables.
