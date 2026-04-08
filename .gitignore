@@ -27,3 +27,6 @@ Thumbs.db
 
 # Local SQLite database (do not commit)
 /testing
+
+# Local notes / credentials (do not commit)
+DataPenting.txt
