@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 type LevelRow = {
@@ -39,14 +39,16 @@ function formatSeconds(v: number | null): string {
 function RankingTable({
     rows,
     showLevel = false,
+    myUserId,
 }: {
     rows: RankingEntry[];
     showLevel?: boolean;
+    myUserId: number;
 }) {
     if (!rows.length) {
         return (
-            <p className="rounded-md border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center text-sm text-gray-600">
-                Belum ada data ranking.
+            <p className="rounded-lg border border-dashed border-indigo-200 bg-indigo-50/50 px-4 py-6 text-center text-sm text-indigo-700">
+                No ranking data yet.
             </p>
         );
     }
@@ -54,7 +56,7 @@ function RankingTable({
     return (
         <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="sticky top-0 z-10 bg-gray-50">
                     <tr>
                         <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">
                             Rank
@@ -71,7 +73,7 @@ function RankingTable({
                             Score
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">
-                            Waktu
+                            Time
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">
                             Status
@@ -82,26 +84,59 @@ function RankingTable({
                     {rows.map((row) => (
                         <tr
                             key={`session-${row.session_id}`}
+                            className={[
+                                'transition hover:bg-indigo-50/40',
+                                row.user_id === myUserId
+                                    ? 'bg-indigo-50/60'
+                                    : '',
+                            ].join(' ')}
                         >
                             <td className="px-4 py-3 text-sm font-semibold text-gray-900">
-                                #{row.rank}
+                                <span
+                                    className={[
+                                        'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold',
+                                        row.rank === 1
+                                            ? 'bg-amber-100 text-amber-700'
+                                            : row.rank === 2
+                                              ? 'bg-slate-200 text-slate-700'
+                                              : row.rank === 3
+                                                ? 'bg-orange-100 text-orange-700'
+                                                : 'bg-gray-100 text-gray-700',
+                                    ].join(' ')}
+                                >
+                                    #{row.rank}
+                                </span>
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-700">
                                 {row.user_name}
+                                {row.user_id === myUserId ? (
+                                    <span className="ml-2 inline-flex rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-semibold text-indigo-700">
+                                        Me
+                                    </span>
+                                ) : null}
                             </td>
                             {showLevel && (
                                 <td className="px-4 py-3 text-sm text-gray-700">
                                     {row.level_name ?? '-'}
                                 </td>
                             )}
-                            <td className="px-4 py-3 text-sm text-gray-700">
+                            <td className="px-4 py-3 text-sm tabular-nums text-gray-700">
                                 {row.total_score}/{row.max_possible_score}
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-700">
+                            <td className="px-4 py-3 text-sm tabular-nums text-gray-700">
                                 {formatSeconds(row.duration_seconds)}
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-700">
-                                {row.status}
+                                <span
+                                    className={[
+                                        'inline-flex rounded-full px-2 py-0.5 text-xs font-semibold',
+                                        row.status === 'completed'
+                                            ? 'bg-emerald-100 text-emerald-700'
+                                            : 'bg-rose-100 text-rose-700',
+                                    ].join(' ')}
+                                >
+                                    {row.status}
+                                </span>
                             </td>
                         </tr>
                     ))}
@@ -125,6 +160,7 @@ export default function Index({
     leaderboardByLevelAllAttempts: Record<string, RankingBucket>;
 }) {
     const [mode, setMode] = useState<RankingsMode>('latest');
+    const userId = usePage().props.auth.user?.id ?? 0;
 
     const global =
         mode === 'latest' ? globalLeaderboardLatest : globalLeaderboardAllAttempts;
@@ -136,57 +172,63 @@ export default function Index({
             header={
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <h2 className="text-xl font-semibold text-gray-800">
-                        Peringkat Student
+                        Student Rankings
                     </h2>
                     <div
-                        className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1"
+                        className="inline-flex rounded-xl border border-indigo-200 bg-indigo-50/80 p-1"
                         role="group"
                         aria-label="Mode ranking"
                     >
                         <button
                             type="button"
                             onClick={() => setMode('latest')}
+                            aria-pressed={mode === 'latest'}
                             className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
                                 mode === 'latest'
-                                    ? 'bg-white text-gray-900 shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
-                            }`}
+                                    ? 'bg-white text-indigo-900 shadow-sm'
+                                    : 'text-indigo-600 hover:text-indigo-900'
+                            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-1`}
                         >
-                            Terbaru per student
+                            Latest per student
                         </button>
                         <button
                             type="button"
                             onClick={() => setMode('allAttempts')}
+                            aria-pressed={mode === 'allAttempts'}
                             className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
                                 mode === 'allAttempts'
-                                    ? 'bg-white text-gray-900 shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
-                            }`}
+                                    ? 'bg-white text-indigo-900 shadow-sm'
+                                    : 'text-indigo-600 hover:text-indigo-900'
+                            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-1`}
                         >
-                            Semua attempt
+                            All attempts
                         </button>
                     </div>
                 </div>
             }
         >
-            <Head title="Peringkat Student" />
-            <div className="py-8">
+            <Head title="Student Rankings" />
+            <div className="bg-[radial-gradient(ellipse_120%_80%_at_10%_-10%,rgba(99,102,241,0.18),transparent_50%),radial-gradient(ellipse_100%_80%_at_100%_0%,rgba(56,189,248,0.16),transparent_55%),linear-gradient(180deg,#eef2ff_0%,#ffffff_45%,#ecfeff_100%)] py-8">
                 <div className="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
-                    <p className="text-sm text-gray-600">
+                    <p className="rounded-xl border border-indigo-100 bg-white/80 px-4 py-3 text-sm text-slate-600 shadow-sm">
                         {mode === 'latest'
-                            ? 'Satu baris per student (menggunakan sesi selesai terakhir).'
-                            : 'Setiap percobaan ujian tampil sebagai baris terpisah.'}
+                            ? 'One row per student (using latest completed session).'
+                            : 'Each exam attempt is shown as a separate row.'}
                     </p>
-                    <div className="rounded-lg bg-white p-5 shadow-sm">
+                    <div className="rounded-2xl border border-white/80 bg-white/90 p-5 shadow-lg shadow-indigo-100">
                         <div className="mb-4 flex items-center justify-between">
                             <h3 className="text-base font-semibold text-gray-900">
                                 Global Ranking
                             </h3>
                             <span className="text-sm text-gray-600">
-                                Peringkat saya: {global.my_rank ?? '-'}
+                                My rank: {global.my_rank ?? '-'}
                             </span>
                         </div>
-                        <RankingTable rows={global.top} showLevel />
+                        <RankingTable
+                            rows={global.top}
+                            showLevel
+                            myUserId={userId}
+                        />
                     </div>
 
                     <div className="space-y-4">
@@ -199,17 +241,20 @@ export default function Index({
                             return (
                                 <div
                                     key={level.id}
-                                    className="rounded-lg bg-white p-5 shadow-sm"
+                                    className="rounded-2xl border border-white/80 bg-white/90 p-5 shadow-lg shadow-indigo-100"
                                 >
                                     <div className="mb-4 flex items-center justify-between">
                                         <h3 className="text-base font-semibold text-gray-900">
-                                            Ranking {level.name}
+                                            {level.name} Ranking
                                         </h3>
                                         <span className="text-sm text-gray-600">
-                                            Peringkat saya: {data.my_rank ?? '-'}
+                                            My rank: {data.my_rank ?? '-'}
                                         </span>
                                     </div>
-                                    <RankingTable rows={data.top} />
+                                    <RankingTable
+                                        rows={data.top}
+                                        myUserId={userId}
+                                    />
                                 </div>
                             );
                         })}

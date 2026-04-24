@@ -26,6 +26,15 @@ export type DashboardStudentAnalytics = {
         levelName: string;
     }>;
     scoresByLevel: Array<{ name: string; avgPercent: number }>;
+    dailyActivity: {
+        todayAnsweredCount: number;
+        todayCompleted: boolean;
+        minRequired: number;
+        maxAllowed: number;
+        currentStreak: number;
+        weeklyProgressDays: number;
+        rewardPointsTotal: number;
+    };
 };
 
 export type DashboardLecturerAnalytics = {

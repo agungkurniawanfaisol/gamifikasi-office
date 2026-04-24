@@ -14,40 +14,45 @@ export default function Welcome({
     phpVersion: string;
 }>) {
     const features = [
-        'Belajar adaptif berdasarkan level kemampuan',
-        'Ujian dengan timer total dan timer per soal',
+        'Adaptive learning based on skill level',
+        'Exams with total timer and per-question timer',
         'Ranking global dan per-level secara real-time',
-        'Feedback pasca ujian + rating bintang',
-        'Manajemen soal untuk admin dan lecturer',
-        'UI mobile-first yang tetap nyaman di desktop',
+        'Post-exam feedback + star rating',
+        'Question management for admin and lecturer',
+        'Mobile-first UI that remains comfortable on desktop',
     ];
 
     const steps = [
         {
             no: '01',
-            title: 'Pilih level',
-            desc: 'Student memilih Basic, Intermediate, atau Advanced sesuai kesiapan.',
+            title: 'Choose level',
+            desc: 'Students choose Basic, Intermediate, or Advanced based on readiness.',
         },
         {
             no: '02',
-            title: 'Kerjakan ujian',
-            desc: 'Simpan jawaban, lanjut soal berikutnya, dan pantau timer.',
+            title: 'Take the exam',
+            desc: 'Save answers, continue to the next question, and monitor the timer.',
         },
         {
             no: '03',
-            title: 'Dapatkan hasil',
-            desc: 'Skor dihitung otomatis dan posisi ranking langsung terlihat.',
+            title: 'Get results',
+            desc: 'Scores are calculated automatically and ranking position is shown instantly.',
         },
         {
             no: '04',
-            title: 'Kirim testimonial',
-            desc: 'Berikan rating bintang dan masukan untuk peningkatan kualitas.',
+            title: 'Submit testimonial',
+            desc: 'Give a star rating and feedback for quality improvement.',
         },
+    ];
+    const quickStats = [
+        { label: 'Daily challenge active', value: '7-day streak' },
+        { label: 'Tingkat engagement', value: '92% student active' },
+        { label: 'Average score', value: '78/100' },
     ];
 
     return (
         <>
-            <Head title="Beranda">
+            <Head title="Home">
                 <link
                     rel="stylesheet"
                     href="https://fonts.bunny.net/css?family=outfit:500,600,700|nunito:400,500,600,700&display=swap"
@@ -75,7 +80,7 @@ export default function Welcome({
                 />
 
                 <header className="fixed inset-x-0 top-0 z-40 px-4 pt-3 sm:px-6 lg:px-8">
-                    <div className="mx-auto max-w-6xl rounded-2xl border border-white/70 bg-white/80 px-4 py-3 shadow-lg shadow-stone-900/10 backdrop-blur-md sm:px-5">
+                    <div className="mx-auto max-w-6xl rounded-2xl border border-white/70 bg-white/85 px-4 py-3 shadow-lg shadow-stone-900/10 backdrop-blur-md sm:px-5">
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <Link
                             href="/"
@@ -99,14 +104,14 @@ export default function Welcome({
                                     Gamifikasi
                                 </span>
                                 <span className="text-xs font-medium text-stone-500">
-                                    Belajar dengan semangat
+                                    Learn with enthusiasm
                                 </span>
                             </span>
                         </Link>
 
                             <nav
                                 className="flex flex-wrap items-center justify-end gap-2 sm:gap-3"
-                                aria-label="Utama"
+                                aria-label="Main"
                             >
                                 {auth.user ? (
                                     <Link
@@ -122,7 +127,7 @@ export default function Welcome({
                                                 href={route('login')}
                                                 className="rounded-full px-4 py-2.5 text-sm font-semibold text-stone-700 transition hover:bg-white/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
                                             >
-                                                Masuk
+                                                Sign in
                                             </Link>
                                         )}
                                         {canRegister && (
@@ -130,7 +135,7 @@ export default function Welcome({
                                                 href={route('register')}
                                                 className="rounded-full bg-gradient-to-r from-teal-600 to-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-teal-600/20 transition hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2"
                                             >
-                                                Daftar gratis
+                                                Register free
                                             </Link>
                                         )}
                                     </>
@@ -148,24 +153,23 @@ export default function Welcome({
                                 className="h-2 w-2 animate-pulse rounded-full bg-emerald-500"
                                 aria-hidden
                             />
-                            Platform pembelajaran interaktif
+                            Interactive learning platform
                         </p>
 
                         <h1
                             className="mt-6 max-w-3xl text-4xl font-bold leading-[1.1] tracking-tight text-stone-900 sm:text-5xl lg:text-6xl"
                             style={{ fontFamily: "'Outfit', sans-serif" }}
                         >
-                            Belajar makin seru dengan{' '}
+                            Learning becomes more exciting with{' '}
                             <span className="bg-gradient-to-r from-orange-500 via-amber-500 to-teal-600 bg-clip-text text-transparent">
-                                cerita & tantangan
+                                stories & challenges
                             </span>
                         </h1>
 
                         <p className="mt-5 max-w-2xl text-base leading-relaxed text-stone-600 sm:text-lg">
-                            Latih skill, kerjakan soal, dan kumpulkan progres
-                            harian — dirancang agar nyaman di{' '}
+                            Practice skills, answer questions, and collect daily progress — designed to be comfortable on{' '}
                             <span className="font-semibold text-stone-800">
-                                HP maupun laptop
+                                mobile and laptop
                             </span>
                             .
                         </p>
@@ -176,7 +180,7 @@ export default function Welcome({
                                     href={route('dashboard')}
                                     className="inline-flex items-center justify-center rounded-2xl bg-stone-900 px-8 py-3.5 text-base font-semibold text-white shadow-xl transition hover:bg-stone-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2"
                                 >
-                                    Lanjut ke dashboard
+                                    Go to dashboard
                                 </Link>
                             ) : (
                                 <>
@@ -185,7 +189,7 @@ export default function Welcome({
                                             href={route('register')}
                                             className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 px-8 py-3.5 text-base font-semibold text-white shadow-xl shadow-orange-500/30 transition hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2"
                                         >
-                                            Mulai belajar sekarang
+                                            Start learning now
                                         </Link>
                                     )}
                                     {canLogin && (
@@ -193,20 +197,41 @@ export default function Welcome({
                                             href={route('login')}
                                             className="inline-flex items-center justify-center rounded-2xl border-2 border-stone-200 bg-white/80 px-8 py-3.5 text-base font-semibold text-stone-800 shadow-sm backdrop-blur transition hover:border-stone-300 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 focus-visible:ring-offset-2"
                                         >
-                                            Sudah punya akun?
+                                            Already have an account?
                                         </Link>
                                     )}
                                 </>
                             )}
                         </div>
 
-                        <div className="mt-12 grid w-full gap-4 text-left sm:grid-cols-3">
+                        <div className="mt-10 w-full max-w-3xl rounded-3xl border border-white/70 bg-white/80 p-4 shadow-lg backdrop-blur sm:p-5">
+                            <p className="text-left text-xs font-semibold uppercase tracking-wider text-teal-700">
+                                Live Learning Snapshot
+                            </p>
+                            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                                {quickStats.map((item) => (
+                                    <article
+                                        key={item.label}
+                                        className="rounded-2xl border border-teal-100 bg-gradient-to-br from-white to-teal-50 p-3 text-left"
+                                    >
+                                        <p className="text-[11px] font-semibold uppercase tracking-wide text-stone-500">
+                                            {item.label}
+                                        </p>
+                                        <p className="mt-1 text-sm font-bold text-stone-900">
+                                            {item.value}
+                                        </p>
+                                    </article>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="mt-8 grid w-full gap-4 text-left sm:grid-cols-3">
                             <div className="rounded-2xl border border-white/70 bg-white/75 p-4 shadow-sm backdrop-blur">
                                 <p className="text-2xl font-bold text-stone-900">
                                     1000+
                                 </p>
                                 <p className="text-sm text-stone-600">
-                                    bank soal siap pakai
+                                    ready-to-use question bank
                                 </p>
                             </div>
                             <div className="rounded-2xl border border-white/70 bg-white/75 p-4 shadow-sm backdrop-blur">
@@ -222,7 +247,7 @@ export default function Welcome({
                                     Mobile First
                                 </p>
                                 <p className="text-sm text-stone-600">
-                                    nyaman dipakai di HP
+                                    comfortable on mobile
                                 </p>
                             </div>
                         </div>
@@ -234,7 +259,7 @@ export default function Welcome({
                                 className="text-2xl font-bold text-stone-900 sm:text-3xl"
                                 style={{ fontFamily: "'Outfit', sans-serif" }}
                             >
-                                Semua kebutuhan belajar di satu platform
+                                All learning needs in one platform
                             </h2>
                         </div>
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -257,7 +282,7 @@ export default function Welcome({
                                 className="text-left text-2xl font-bold text-stone-900 sm:text-3xl"
                                 style={{ fontFamily: "'Outfit', sans-serif" }}
                             >
-                                Alur belajar yang jelas
+                                Clear learning flow
                             </h2>
                             <div className="mt-6 grid gap-4 md:grid-cols-2">
                                 {steps.map((step) => (
@@ -286,13 +311,12 @@ export default function Welcome({
                                 className="text-2xl font-bold text-stone-900"
                                 style={{ fontFamily: "'Outfit', sans-serif" }}
                             >
-                                Testimoni
+                                Testimonials
                             </h2>
                             <div className="mt-5 grid gap-4 md:grid-cols-2">
                                 <blockquote className="rounded-2xl bg-amber-50 p-4 text-left">
                                     <p className="text-sm text-stone-700">
-                                        “Saya jadi lebih disiplin karena alur
-                                        belajarnya jelas dan ada target.”
+                                        "I became more disciplined because the learning flow is clear and has targets."
                                     </p>
                                     <footer className="mt-2 text-xs font-semibold text-stone-500">
                                         Student
@@ -300,8 +324,7 @@ export default function Welcome({
                                 </blockquote>
                                 <blockquote className="rounded-2xl bg-teal-50 p-4 text-left">
                                     <p className="text-sm text-stone-700">
-                                        “Monitoring hasil kelas jauh lebih cepat
-                                        dari sisi lecturer.”
+                                        "Monitoring class results is much faster from the lecturer side."
                                     </p>
                                     <footer className="mt-2 text-xs font-semibold text-stone-500">
                                         Lecturer
@@ -312,17 +335,16 @@ export default function Welcome({
 
                         <div className="rounded-3xl bg-stone-900 p-6 text-left text-white shadow-lg">
                             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-300">
-                                Siap mulai?
+                                Ready to start?
                             </p>
                             <h3
                                 className="mt-2 text-2xl font-bold leading-tight"
                                 style={{ fontFamily: "'Outfit', sans-serif" }}
                             >
-                                Bangun kebiasaan belajar konsisten
+                                Build a consistent learning habit
                             </h3>
                             <p className="mt-3 text-sm text-stone-300">
-                                Buat akun, pilih level, kerjakan ujian, lalu
-                                lihat progresmu tiap hari.
+                                Create an account, choose a level, take exams, and track your progress every day.
                             </p>
                             <div className="mt-5">
                                 {auth.user ? (
@@ -330,7 +352,7 @@ export default function Welcome({
                                         href={route('dashboard')}
                                         className="inline-flex rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-stone-900"
                                     >
-                                        Buka Dashboard
+                                        Open Dashboard
                                     </Link>
                                 ) : (
                                     <Link
@@ -341,7 +363,7 @@ export default function Welcome({
                                         }
                                         className="inline-flex rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-stone-900"
                                     >
-                                        {canRegister ? 'Daftar Gratis' : 'Masuk'}
+                                        {canRegister ? 'Register for Free' : 'Sign in'}
                                     </Link>
                                 )}
                             </div>

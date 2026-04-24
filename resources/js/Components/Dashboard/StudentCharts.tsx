@@ -39,16 +39,21 @@ export default function StudentCharts({
 
     return (
         <div className="grid gap-6 lg:grid-cols-2">
-            <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm ring-1 ring-gray-100">
+            <div className="min-w-0 rounded-xl border border-gray-100 bg-white p-4 shadow-sm ring-1 ring-gray-100">
                 <h3 className="mb-1 text-sm font-semibold text-gray-900">
-                    Riwayat skor ujian
+                    Exam score history
                 </h3>
                 <p className="mb-4 text-xs text-gray-500">
-                    Persen benar per sesi (urutan waktu)
+                    Correct-answer percentage per session (chronological)
                 </p>
                 {hasLine ? (
-                    <div className="h-64 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
+                    <div className="h-64 w-full min-w-0">
+                        <ResponsiveContainer
+                            width="100%"
+                            height="100%"
+                            minWidth={0}
+                            minHeight={240}
+                        >
                             <LineChart data={lineData}>
                                 <CartesianGrid
                                     strokeDasharray="3 3"
@@ -82,7 +87,7 @@ export default function StudentCharts({
                                             `${v}%`,
                                             p?.levelName
                                                 ? `Level: ${p.levelName}`
-                                                : 'Skor',
+                                                : 'Score',
                                         ];
                                     }}
                                 />
@@ -99,21 +104,26 @@ export default function StudentCharts({
                     </div>
                 ) : (
                     <p className="flex h-48 items-center justify-center text-sm text-gray-500">
-                        Belum ada riwayat ujian selesai.
+                        No completed exam history yet.
                     </p>
                 )}
             </div>
 
-            <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm ring-1 ring-gray-100">
+            <div className="min-w-0 rounded-xl border border-gray-100 bg-white p-4 shadow-sm ring-1 ring-gray-100">
                 <h3 className="mb-1 text-sm font-semibold text-gray-900">
-                    Rata-rata per level
+                    Average by level
                 </h3>
                 <p className="mb-4 text-xs text-gray-500">
-                    Persen benar (rata-rata dari sesi selesai)
+                    Correct-answer percentage (average from completed sessions)
                 </p>
                 {hasBar ? (
-                    <div className="h-64 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
+                    <div className="h-64 w-full min-w-0">
+                        <ResponsiveContainer
+                            width="100%"
+                            height="100%"
+                            minWidth={0}
+                            minHeight={240}
+                        >
                             <BarChart data={scoresByLevel} layout="vertical">
                                 <CartesianGrid
                                     strokeDasharray="3 3"
@@ -140,7 +150,7 @@ export default function StudentCharts({
                                             typeof value === 'number'
                                                 ? value
                                                 : Number(value);
-                                        return [`${v}%`, 'Rata-rata'];
+                                        return [`${v}%`, 'Average'];
                                     }}
                                 />
                                 <Bar
@@ -153,7 +163,7 @@ export default function StudentCharts({
                     </div>
                 ) : (
                     <p className="flex h-48 items-center justify-center text-sm text-gray-500">
-                        Belum ada data per level.
+                        No per-level data yet.
                     </p>
                 )}
             </div>

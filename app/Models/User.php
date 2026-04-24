@@ -22,6 +22,11 @@ class User extends Authenticatable
         'password',
         'role',
         'avatar',
+        'phone_number',
+        'gender',
+        'birth_date',
+        'address',
+        'bio',
         'is_active',
     ];
 
@@ -36,6 +41,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'birth_date' => 'date',
             'is_active' => 'boolean',
         ];
     }
@@ -58,6 +64,21 @@ class User extends Authenticatable
     public function dailyGoals(): HasMany
     {
         return $this->hasMany(DailyGoal::class);
+    }
+
+    public function dailyActivityLogs(): HasMany
+    {
+        return $this->hasMany(DailyActivityLog::class);
+    }
+
+    public function rewardPoints(): HasMany
+    {
+        return $this->hasMany(UserRewardPoint::class);
+    }
+
+    public function priorityPracticeSessions(): HasMany
+    {
+        return $this->hasMany(PriorityPracticeSession::class);
     }
 
     public function createdQuestions(): HasMany

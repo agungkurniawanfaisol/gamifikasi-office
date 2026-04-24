@@ -29,11 +29,11 @@ export default function Index({
         <AuthenticatedLayout
             header={
                 <h2 className="text-xl font-semibold text-gray-800">
-                    Feedback ujian
+                    Exam Feedback
                 </h2>
             }
         >
-            <Head title="Feedback ujian" />
+            <Head title="Exam Feedback" />
             <div className="py-8">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="overflow-hidden rounded-lg bg-white shadow-sm">
@@ -42,7 +42,7 @@ export default function Index({
                                 <thead className="bg-gray-50">
                                     <tr>
                                         <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">
-                                            Tanggal
+                                            Date
                                         </th>
                                         <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">
                                             Student
@@ -51,13 +51,13 @@ export default function Index({
                                             Level
                                         </th>
                                         <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">
-                                            Skor
+                                            Score
                                         </th>
                                         <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">
                                             Rating
                                         </th>
                                         <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">
-                                            Testimoni
+                                            Testimonials
                                         </th>
                                     </tr>
                                 </thead>
@@ -68,7 +68,7 @@ export default function Index({
                                                 colSpan={6}
                                                 className="px-4 py-8 text-center text-sm text-gray-600"
                                             >
-                                                Belum ada feedback yang dikirim.
+                                                No feedback has been submitted yet.
                                             </td>
                                         </tr>
                                     ) : (

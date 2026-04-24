@@ -255,9 +255,9 @@ export default function Show({
     if (!active) {
         return (
             <AuthenticatedLayout examMode>
-                <Head title="Ujian" />
+                <Head title="Exam" />
                 <div className="p-8 text-center text-sm text-slate-400">
-                    Soal tidak tersedia untuk sesi ini.
+                    Questions are not available for this session.
                 </div>
             </AuthenticatedLayout>
         );
@@ -369,11 +369,11 @@ export default function Show({
     const questionUrgent =
         questionRemaining > 0 && questionRemaining <= 30;
 
-    const levelName = session.level?.name ?? 'Ujian';
+    const levelName = session.level?.name ?? 'Exam';
 
     return (
         <AuthenticatedLayout examMode>
-            <Head title={`Ujian — ${levelName}`} />
+            <Head title={`Exam — ${levelName}`} />
 
             <div className="relative pb-10 pt-4 sm:pt-6">
                 <div
@@ -391,11 +391,11 @@ export default function Show({
                                 {levelName}
                             </p>
                             <h1 className="mt-1 text-xl font-bold text-white sm:text-2xl">
-                                Sesi ujian
+                                    Exam session
                             </h1>
                             <p className="mt-1 max-w-md text-sm text-slate-400">
-                                Fokus pada soal ini. Jeda sejenak, tarik napas,
-                                lalu lanjut — kamu bisa!
+                                    Focus on this question. Take a short breath,
+                                    then continue - you've got this.
                             </p>
                             <button
                                 type="button"
@@ -403,14 +403,14 @@ export default function Show({
                                 className="mt-3 inline-flex items-center gap-2 rounded-lg border border-teal-500/40 bg-teal-500/10 px-3 py-2 text-xs font-semibold text-teal-200 transition hover:bg-teal-500/20"
                             >
                                 <span aria-hidden>⛶</span>
-                                Tampilan layar penuh (opsional)
+                                Full-screen mode (optional)
                             </button>
                         </div>
                         <TimerRing
                             remaining={globalRemaining}
                             total={totalExamSeconds}
-                            label="Sisa waktu ujian"
-                            sub="Waktu habis = otomatis dikumpulkan"
+                            label="Exam time left"
+                            sub="Time up = auto submit"
                             urgent={globalUrgent}
                         />
                     </div>
@@ -418,11 +418,11 @@ export default function Show({
                     <div className="mb-6">
                         <div className="mb-2 flex items-center justify-between text-xs text-slate-400">
                             <span>
-                                Progres:{' '}
+                                Progress:{' '}
                                 <span className="font-semibold text-teal-300">
                                     {answeredCount}
                                 </span>{' '}
-                                / {questions.length} dijawab
+                                / {questions.length} answered
                             </span>
                             <span className="tabular-nums">{progressPct}%</span>
                         </div>
@@ -438,7 +438,7 @@ export default function Show({
                         <aside className="lg:col-span-4">
                             <div className="sticky top-4 rounded-2xl border border-white/10 bg-slate-900/80 p-4 shadow-lg backdrop-blur-md">
                                 <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
-                                    Peta soal
+                                    Question map
                                 </p>
                                 <div className="grid grid-cols-5 gap-2 sm:grid-cols-6 lg:grid-cols-5">
                                     {questions.map((q, idx) => {
@@ -453,7 +453,7 @@ export default function Show({
                                                 onClick={() =>
                                                     setActiveIndex(idx)
                                                 }
-                                                title={`Soal ${q.order}`}
+                                                title={`Question ${q.order}`}
                                                 className={[
                                                     'relative flex aspect-square items-center justify-center rounded-xl text-sm font-bold transition',
                                                     isActive
@@ -474,8 +474,8 @@ export default function Show({
                                     })}
                                 </div>
                                 <p className="mt-4 text-xs leading-relaxed text-slate-500">
-                                    Klik nomor untuk lompat. Tanda centang =
-                                    sudah ada jawaban tersimpan.
+                                    Click a number to jump. Check mark =
+                                    answer already saved.
                                 </p>
                             </div>
                         </aside>
@@ -485,7 +485,7 @@ export default function Show({
                                 <div className="flex flex-col gap-3 border-b border-white/10 bg-white/5 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                                     <div>
                                         <span className="text-xs font-semibold uppercase tracking-wider text-teal-400/90">
-                                            Soal
+                                            Question
                                         </span>
                                         <p className="text-lg font-bold text-white">
                                             #{active.order}{' '}
@@ -502,7 +502,7 @@ export default function Show({
                                         }`}
                                     >
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                                            Waktu soal
+                                            Question timer
                                         </span>
                                         {formatSeconds(questionRemaining)}
                                     </div>
@@ -585,7 +585,7 @@ export default function Show({
                                             onChange={(e) =>
                                                 setAnswerText(e.target.value)
                                             }
-                                            placeholder="Tulis jawaban Anda di sini…"
+                                            placeholder="Write your answer here..."
                                         />
                                     )}
 
@@ -596,7 +596,7 @@ export default function Show({
                                             disabled={answerForm.processing}
                                             className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/15 disabled:opacity-40"
                                         >
-                                            Simpan jawaban
+                                            Save answer
                                         </button>
                                         <button
                                             type="button"
@@ -608,7 +608,7 @@ export default function Show({
                                             }
                                             className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-teal-500/25 transition hover:brightness-110 disabled:opacity-40"
                                         >
-                                            Simpan & soal berikutnya
+                                            Save & next question
                                         </button>
                                         <button
                                             type="button"
@@ -616,7 +616,7 @@ export default function Show({
                                             disabled={completeForm.processing}
                                             className="inline-flex items-center justify-center rounded-xl border border-amber-500/40 bg-amber-500/10 px-5 py-3 text-sm font-semibold text-amber-100 transition hover:bg-amber-500/20 disabled:opacity-40 sm:ml-auto"
                                         >
-                                            Selesai & kumpulkan
+                                            Finish & submit
                                         </button>
                                     </div>
                                 </div>

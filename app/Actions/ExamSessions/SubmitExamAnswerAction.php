@@ -7,6 +7,7 @@ use App\Enums\QuestionType;
 use App\Models\ExamAnswer;
 use App\Models\ExamSession;
 use App\Models\ExamSessionQuestion;
+use App\Services\Audit\AuditTrailService;
 use Illuminate\Validation\ValidationException;
 
 class SubmitExamAnswerAction
@@ -69,7 +70,7 @@ class SubmitExamAnswerAction
             }
         }
 
-        return ExamAnswer::query()->updateOrCreate(
+        $answer = ExamAnswer::query()->updateOrCreate(
             [
                 'exam_session_id' => $session->id,
                 'exam_session_question_id' => $sessionQuestion->id,
@@ -84,6 +85,27 @@ class SubmitExamAnswerAction
                 'time_spent_seconds' => $payload['time_spent_seconds'] ?? null,
             ],
         );
+
+        app(AuditTrailService::class)->record(
+            payload: [
+                'event_type' => 'exam_event',
+                'event_key' => 'exam.answer.submit',
+                'subject_type' => 'exam_session_question',
+                'subject_id' => (int) $sessionQuestion->id,
+                'subject_label' => 'Submit exam answer',
+                'exam_session_id' => (int) $session->id,
+                'score_after' => $score,
+                'metadata' => [
+                    'question_id' => (int) $sessionQuestion->question_id,
+                    'is_correct' => $isCorrect,
+                    'selected_option_id' => $selectedOptionId,
+                    'time_spent_seconds' => $payload['time_spent_seconds'] ?? null,
+                ],
+            ],
+            actor: $session->user,
+        );
+
+        return $answer;
     }
 }
 

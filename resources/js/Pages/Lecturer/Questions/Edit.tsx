@@ -20,7 +20,6 @@ export default function Edit({
         level_id: number;
         type: string;
         question_text: string;
-        narrative_text: string | null;
         explanation: string | null;
         is_active: boolean;
         options: {
@@ -38,7 +37,6 @@ export default function Edit({
         level_id: number;
         type: string;
         question_text: string;
-        narrative_text: string;
         explanation: string;
         is_active: boolean;
         options: OptionRow[];
@@ -47,7 +45,6 @@ export default function Edit({
         level_id: question.level_id,
         type: question.type,
         question_text: question.question_text,
-        narrative_text: question.narrative_text ?? '',
         explanation: question.explanation ?? '',
         is_active: question.is_active,
         options:
@@ -198,29 +195,6 @@ export default function Edit({
 
                             <div>
                                 <InputLabel
-                                    htmlFor="narrative_text"
-                                    value="Narrative (optional)"
-                                />
-                                <textarea
-                                    id="narrative_text"
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                    rows={3}
-                                    value={data.narrative_text}
-                                    onChange={(e) =>
-                                        setData(
-                                            'narrative_text',
-                                            e.target.value,
-                                        )
-                                    }
-                                />
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.narrative_text}
-                                />
-                            </div>
-
-                            <div>
-                                <InputLabel
                                     htmlFor="explanation"
                                     value="Explanation (optional)"
                                 />
@@ -237,6 +211,14 @@ export default function Edit({
                                     className="mt-2"
                                     message={errors.explanation}
                                 />
+                                {(data.type === 'essay' ||
+                                    data.type === 'fill_blank') && (
+                                    <p className="mt-2 text-xs text-gray-600">
+                                        For essay and fill-in-the-blank questions,
+                                        enter the reference answer in the
+                                        Explanation field.
+                                    </p>
+                                )}
                             </div>
 
                             <div className="flex items-center gap-3">
@@ -386,6 +368,16 @@ export default function Edit({
                                         className="mt-2"
                                         message={errors.options}
                                     />
+                                </div>
+                            )}
+
+                            {(data.type === 'essay' ||
+                                data.type === 'fill_blank') && (
+                                <div className="rounded-md border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-600">
+                                    For essay and fill-in-the-blank questions,
+                                    the reference answer is stored in the
+                                    Explanation field. There are no multiple
+                                    choice options for this question type.
                                 </div>
                             )}
 

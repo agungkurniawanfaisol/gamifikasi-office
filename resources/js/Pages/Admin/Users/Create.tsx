@@ -14,18 +14,30 @@ export default function Create() {
         email: string;
         role: Role;
         is_active: boolean;
+        phone_number: string;
+        gender: 'male' | 'female';
+        birth_date: string;
+        address: string;
+        bio: string;
+        avatar: File | null;
         password: string;
     }>({
         name: '',
         email: '',
         role: 'student',
         is_active: true,
+        phone_number: '',
+        gender: 'male',
+        birth_date: '',
+        address: '',
+        bio: '',
+        avatar: null,
         password: '',
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(route('admin.users.store'));
+        post(route('admin.users.store'), { forceFormData: true });
     };
 
     return (
@@ -49,7 +61,7 @@ export default function Create() {
             <div className="py-8">
                 <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
                     <div className="overflow-hidden rounded-lg bg-white shadow-sm">
-                        <form onSubmit={submit} className="p-6 space-y-6">
+                        <form onSubmit={submit} className="space-y-6 p-6">
                             <div>
                                 <InputLabel htmlFor="name" value="Name" />
                                 <TextInput
@@ -82,6 +94,132 @@ export default function Create() {
                                 <InputError
                                     className="mt-2"
                                     message={errors.email}
+                                />
+                            </div>
+
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <InputLabel
+                                        htmlFor="phone_number"
+                                        value="Nomor HP"
+                                    />
+                                    <TextInput
+                                        id="phone_number"
+                                        className="mt-1 block w-full"
+                                        value={data.phone_number}
+                                        onChange={(e) =>
+                                            setData('phone_number', e.target.value)
+                                        }
+                                        required
+                                    />
+                                    <InputError
+                                        className="mt-2"
+                                        message={errors.phone_number}
+                                    />
+                                </div>
+                                <div>
+                                    <InputLabel
+                                        htmlFor="gender"
+                                        value="Jenis Kelamin"
+                                    />
+                                    <select
+                                        id="gender"
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                        value={data.gender}
+                                        onChange={(e) =>
+                                            setData(
+                                                'gender',
+                                                e.target.value as
+                                                    | 'male'
+                                                    | 'female',
+                                            )
+                                        }
+                                        required
+                                    >
+                                        <option value="male">Laki-laki</option>
+                                        <option value="female">Perempuan</option>
+                                    </select>
+                                    <InputError
+                                        className="mt-2"
+                                        message={errors.gender}
+                                    />
+                                </div>
+                                <div>
+                                    <InputLabel
+                                        htmlFor="birth_date"
+                                        value="Date Lahir"
+                                    />
+                                    <TextInput
+                                        id="birth_date"
+                                        type="date"
+                                        className="mt-1 block w-full"
+                                        value={data.birth_date}
+                                        onChange={(e) =>
+                                            setData('birth_date', e.target.value)
+                                        }
+                                        required
+                                    />
+                                    <InputError
+                                        className="mt-2"
+                                        message={errors.birth_date}
+                                    />
+                                </div>
+                                <div>
+                                    <InputLabel htmlFor="avatar" value="Avatar" />
+                                    <input
+                                        id="avatar"
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/webp"
+                                        className="mt-1 block w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-gray-900 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-gray-800"
+                                        onChange={(e) =>
+                                            setData(
+                                                'avatar',
+                                                e.target.files?.[0] ?? null,
+                                            )
+                                        }
+                                    />
+                                    <InputError
+                                        className="mt-2"
+                                        message={errors.avatar}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <InputLabel htmlFor="address" value="Alamat" />
+                                <textarea
+                                    id="address"
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    rows={3}
+                                    value={data.address}
+                                    onChange={(e) =>
+                                        setData('address', e.target.value)
+                                    }
+                                    required
+                                />
+                                <InputError
+                                    className="mt-2"
+                                    message={errors.address}
+                                />
+                            </div>
+
+                            <div>
+                                <InputLabel
+                                    htmlFor="bio"
+                                    value="Bio (opsional)"
+                                />
+                                <textarea
+                                    id="bio"
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    rows={3}
+                                    value={data.bio}
+                                    onChange={(e) =>
+                                        setData('bio', e.target.value)
+                                    }
+                                />
+                                <InputError
+                                    className="mt-2"
+                                    message={errors.bio}
                                 />
                             </div>
 

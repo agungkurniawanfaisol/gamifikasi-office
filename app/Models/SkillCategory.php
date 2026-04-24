@@ -41,4 +41,9 @@ class SkillCategory extends Model
     {
         return $this->hasMany(ScoreMatrix::class);
     }
+
+    public function priorityPracticeSessions(): HasMany
+    {
+        return $this->hasMany(PriorityPracticeSession::class);
+    }
 }

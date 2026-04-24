@@ -19,17 +19,17 @@ export default function AdminCharts({
 }) {
     const data = [
         { name: 'Admin', count: usersByRole.admin },
-        { name: 'Dosen', count: usersByRole.lecturer },
-        { name: 'Mahasiswa', count: usersByRole.student },
+        { name: 'Lecturer', count: usersByRole.lecturer },
+        { name: 'Student', count: usersByRole.student },
     ];
 
     return (
         <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm ring-1 ring-gray-100">
             <h3 className="mb-1 text-sm font-semibold text-gray-900">
-                Pengguna per peran
+                Users by role
             </h3>
             <p className="mb-4 text-xs text-gray-500">
-                Jumlah akun terdaftar
+                Number of registered accounts
             </p>
             <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">

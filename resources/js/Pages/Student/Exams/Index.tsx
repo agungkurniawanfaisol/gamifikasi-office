@@ -72,12 +72,12 @@ export default function Index({
             header={
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-semibold text-gray-800">
-                        Pilih Ujian
+                        Choose Exam
                     </h2>
                 </div>
             }
         >
-            <Head title="Pilih Ujian" />
+            <Head title="Choose Exam" />
 
             <div className="py-8">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -99,7 +99,7 @@ export default function Index({
                                         {level.name}
                                     </h3>
                                     <p className="mt-1 text-sm text-gray-600">
-                                        Pilih level ini untuk memulai ujian.
+                                        Select this level to start an exam.
                                     </p>
                                     <div className="mt-4 flex gap-2">
                                         <PrimaryButton
@@ -124,12 +124,12 @@ export default function Index({
                                     {completed && (
                                         <div className="mt-4 rounded-md border border-emerald-100 bg-emerald-50 p-3 text-sm">
                                             <div className="font-semibold text-emerald-800">
-                                                Skor: {completed.total_score ?? 0}
+                                                Score: {completed.total_score ?? 0}
                                                 {' / '}
                                                 {completed.max_possible_score ?? 0}
                                             </div>
                                             <div className="mt-1 text-emerald-700">
-                                                Peringkat: {leaderboard?.my_rank ?? '-'}
+                                                Rank: {leaderboard?.my_rank ?? '-'}
                                             </div>
                                             <div className="mt-1 text-emerald-700">
                                                 Status: {completed.status}

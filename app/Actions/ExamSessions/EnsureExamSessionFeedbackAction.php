@@ -2,6 +2,7 @@
 
 namespace App\Actions\ExamSessions;
 
+use App\Enums\ExamSessionFeedbackAiStatus;
 use App\Models\ExamSession;
 use App\Models\ExamSessionFeedback;
 use App\Services\ExamSessions\ExamCompletionMessageService;
@@ -26,6 +27,8 @@ class EnsureExamSessionFeedbackAction
             'exam_session_id' => $session->id,
             'user_id' => $session->user_id,
             'completion_message' => $this->completionMessageService->messageForSession($session),
+            'ai_status' => ExamSessionFeedbackAiStatus::Pending,
+            'ai_model' => (string) config('services.gemini.model', 'gemini-1.5-flash'),
         ]);
     }
 }

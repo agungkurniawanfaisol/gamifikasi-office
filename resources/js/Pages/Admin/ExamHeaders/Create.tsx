@@ -247,7 +247,7 @@ export default function Create({
 
                             <div className="rounded-lg bg-white p-6 shadow-sm lg:col-span-2">
                             <div className="mb-4 text-sm font-semibold text-gray-900">
-                                Pull questions from bank soal (level-based)
+                                Pull questions from the question bank (level-based)
                             </div>
                             <div className="mb-4">
                                 <InputLabel

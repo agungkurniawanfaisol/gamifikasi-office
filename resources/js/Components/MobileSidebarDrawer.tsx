@@ -28,20 +28,20 @@ export default function MobileSidebarDrawer({
 
             <div
                 className={[
-                    'absolute inset-y-0 left-0 w-[84%] max-w-xs border-r border-gray-100 bg-white shadow-xl transition-transform',
+                    'absolute inset-y-0 left-0 w-[84%] max-w-xs border-r border-indigo-100/80 bg-white/95 shadow-2xl backdrop-blur transition-transform',
                     open ? 'translate-x-0' : '-translate-x-full',
                 ].join(' ')}
                 role="dialog"
                 aria-modal="true"
             >
-                <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-                    <div className="text-sm font-semibold text-gray-900">
+                <div className="relative flex items-center justify-between border-b border-indigo-100/80 px-4 py-3">
+                    <div className="text-sm font-semibold text-indigo-900">
                         {title}
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-lg p-2 text-gray-600 hover:bg-gray-100"
+                        className="rounded-lg p-2 text-gray-600 transition hover:bg-indigo-50 hover:text-indigo-700"
                         aria-label="Close sidebar"
                     >
                         <svg
@@ -60,7 +60,7 @@ export default function MobileSidebarDrawer({
                     </button>
                 </div>
 
-                <div className="h-[calc(100%-56px)] overflow-y-auto">
+                <div className="no-scrollbar h-[calc(100%-56px)] overflow-y-auto">
                     <SidebarNav onNavigate={onClose} />
                 </div>
             </div>

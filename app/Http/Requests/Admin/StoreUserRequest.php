@@ -20,6 +20,12 @@ class StoreUserRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'role' => ['required', Rule::enum(UserRole::class)],
             'is_active' => ['required', 'boolean'],
+            'phone_number' => ['required', 'string', 'max:30'],
+            'gender' => ['required', Rule::in(['male', 'female'])],
+            'birth_date' => ['required', 'date', 'before_or_equal:today'],
+            'address' => ['required', 'string', 'max:1000'],
+            'bio' => ['nullable', 'string', 'max:2000'],
+            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'password' => ['required', 'string', 'min:8'],
         ];
     }

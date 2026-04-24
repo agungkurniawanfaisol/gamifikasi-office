@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             SkillCategorySeeder::class,
             UserSeeder::class,
             QuestionSeeder::class,
+            WeeklyDailyActivityBadgeSeeder::class,
         ]);
     }
 }

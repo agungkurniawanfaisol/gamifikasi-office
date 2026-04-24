@@ -39,6 +39,7 @@ class DashboardTest extends TestCase
                 ->has('averageScorePercent')
                 ->has('recentScores')
                 ->has('scoresByLevel')
+                ->has('dailyActivity')
                 ->etc()));
     }
 

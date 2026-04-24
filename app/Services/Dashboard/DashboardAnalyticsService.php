@@ -4,9 +4,11 @@ namespace App\Services\Dashboard;
 
 use App\Enums\ExamStatus;
 use App\Enums\UserRole;
+use App\Models\DailyActivityLog;
 use App\Models\ExamSession;
 use App\Models\Question;
 use App\Models\User;
+use App\Models\UserRewardPoint;
 use Illuminate\Support\Collection;
 
 class DashboardAnalyticsService
@@ -55,6 +57,7 @@ class DashboardAnalyticsService
             'averageScorePercent' => $this->studentAverageScorePercent($userId, $completedStatuses),
             'recentScores' => $this->studentRecentScores($userId, $completedStatuses),
             'scoresByLevel' => $this->studentScoresByLevel($userId, $completedStatuses),
+            'dailyActivity' => $this->studentDailyActivity($userId),
         ];
     }
 
@@ -123,6 +126,46 @@ class DashboardAnalyticsService
             'name' => (string) $row->level_name,
             'avgPercent' => round((float) $row->avg_pct, 1),
         ])->all();
+    }
+
+    /**
+     * @return array{
+     *   todayAnsweredCount: int,
+     *   todayCompleted: bool,
+     *   minRequired: int,
+     *   maxAllowed: int,
+     *   currentStreak: int,
+     *   weeklyProgressDays: int,
+     *   rewardPointsTotal: int
+     * }
+     */
+    private function studentDailyActivity(int $userId): array
+    {
+        $today = now()->toDateString();
+        $todayLog = DailyActivityLog::query()
+            ->forUser($userId)
+            ->forDate($today)
+            ->first();
+
+        $weeklyProgressDays = DailyActivityLog::query()
+            ->forUser($userId)
+            ->where('is_completed', true)
+            ->whereBetween('activity_date', [now()->subDays(6)->toDateString(), $today])
+            ->count();
+
+        $rewardPointsTotal = UserRewardPoint::query()
+            ->forUser($userId)
+            ->sum('points');
+
+        return [
+            'todayAnsweredCount' => (int) ($todayLog?->answered_count ?? 0),
+            'todayCompleted' => (bool) ($todayLog?->is_completed ?? false),
+            'minRequired' => 2,
+            'maxAllowed' => 5,
+            'currentStreak' => (int) ($todayLog?->streak_after_day ?? 0),
+            'weeklyProgressDays' => (int) $weeklyProgressDays,
+            'rewardPointsTotal' => (int) $rewardPointsTotal,
+        ];
     }
 
     /**

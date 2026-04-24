@@ -34,18 +34,18 @@ export default function Dashboard() {
                         <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
                             <div>
                                 <p className="text-sm font-medium uppercase tracking-wide text-teal-700">
-                                    Selamat datang kembali
+                                    Welcome back
                                 </p>
                                 <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                                    Hai, {user?.name ?? 'Pengguna'}
+                                    Hi, {user?.name ?? 'User'}
                                 </h1>
                                 <p className="mt-3 max-w-lg text-base text-gray-600">
                                     {role === 'student' &&
-                                        'Pantau progres ujian dan performa per level di sini.'}
+                                        'Track your exam progress and performance by level here.'}
                                     {role === 'lecturer' &&
-                                        'Ringkasan soal yang Anda kelola.'}
+                                        'Overview of questions you manage.'}
                                     {role === 'admin' &&
-                                        'Ringkasan sistem dan aktivitas ujian.'}
+                                        'System overview and exam activity summary.'}
                                 </p>
                                 {role === 'student' && (
                                     <div className="mt-6 flex flex-wrap gap-3">
@@ -53,7 +53,7 @@ export default function Dashboard() {
                                             href={route('student.exams.index')}
                                             className="inline-flex items-center rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700"
                                         >
-                                            Mulai / lanjut ujian
+                                            Start / continue exam
                                         </Link>
                                         <Link
                                             href={route(
@@ -61,7 +61,7 @@ export default function Dashboard() {
                                             )}
                                             className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 shadow-sm transition hover:bg-gray-50"
                                         >
-                                            Peringkat
+                                            Rankings
                                         </Link>
                                     </div>
                                 )}
@@ -77,34 +77,78 @@ export default function Dashboard() {
                             {student.completedCount === 0 &&
                                 student.inProgressCount === 0 && (
                                     <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900">
-                                        Anda belum memiliki riwayat ujian.
-                                        Mulai dari halaman ujian untuk mengisi
-                                        grafik ini.
+                                        You don't have any exam history yet.
+                                        Start from the exam page to populate
+                                        these charts.
                                     </div>
                                 )}
                             <div className="grid gap-4 sm:grid-cols-3">
                                 <StatCard
-                                    title="Ujian selesai"
+                                    title="Completed exams"
                                     value={student.completedCount}
-                                    hint="Sesi completed / timed out"
+                                    hint="Completed / timed out sessions"
                                     accent="teal"
                                 />
                                 <StatCard
-                                    title="Rata-rata skor"
+                                    title="Average score"
                                     value={
                                         student.averageScorePercent != null
                                             ? `${student.averageScorePercent}%`
                                             : '—'
                                     }
-                                    hint="Dari semua sesi selesai"
+                                    hint="From all completed sessions"
                                     accent="indigo"
                                 />
                                 <StatCard
-                                    title="Sedang berlangsung"
+                                    title="In progress"
                                     value={student.inProgressCount}
-                                    hint="Sesi in progress"
+                                    hint="In-progress sessions"
                                     accent="amber"
                                 />
+                            </div>
+                            <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4">
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <div>
+                                        <p className="text-sm font-semibold text-emerald-800">
+                                            Daily Activity
+                                        </p>
+                                        <p className="mt-1 text-sm text-emerald-700">
+                                            Today:{' '}
+                                            {
+                                                student.dailyActivity
+                                                    .todayAnsweredCount
+                                            }
+                                            /
+                                            {
+                                                student.dailyActivity.maxAllowed
+                                            }{' '}
+                                            questions · Streak{' '}
+                                            {
+                                                student.dailyActivity
+                                                    .currentStreak
+                                            }{' '}
+                                            days
+                                        </p>
+                                        <p className="mt-1 text-xs text-emerald-700">
+                                            Weekly progress:{' '}
+                                            {
+                                                student.dailyActivity
+                                                    .weeklyProgressDays
+                                            }
+                                            /7 days · Total reward points:{' '}
+                                            {
+                                                student.dailyActivity
+                                                    .rewardPointsTotal
+                                            }
+                                        </p>
+                                    </div>
+                                    <Link
+                                        href={route('student.daily-activity.index')}
+                                        className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                                    >
+                                        Open Daily Activity
+                                    </Link>
+                                </div>
                             </div>
                             <StudentCharts
                                 recentScores={student.recentScores}
@@ -117,12 +161,12 @@ export default function Dashboard() {
                         <div className="space-y-8">
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <StatCard
-                                    title="Total soal"
+                                    title="Total questions"
                                     value={lecturer.totalQuestions}
                                     accent="teal"
                                 />
                                 <StatCard
-                                    title="Soal aktif"
+                                    title="Active questions"
                                     value={lecturer.activeQuestions}
                                     hint="is_active = true"
                                     accent="indigo"
@@ -138,20 +182,20 @@ export default function Dashboard() {
                         <div className="space-y-8">
                             <div className="grid gap-4 sm:grid-cols-3">
                                 <StatCard
-                                    title="Total pengguna"
+                                    title="Total users"
                                     value={admin.totalUsers}
                                     accent="teal"
                                 />
                                 <StatCard
-                                    title="Sesi ujian selesai"
+                                    title="Completed exam sessions"
                                     value={admin.completedExamSessions}
                                     hint="Completed + timed out"
                                     accent="indigo"
                                 />
                                 <StatCard
-                                    title="Mahasiswa"
+                                    title="Students"
                                     value={admin.usersByRole.student}
-                                    hint="Akun peran student"
+                                    hint="Student role accounts"
                                     accent="amber"
                                 />
                             </div>

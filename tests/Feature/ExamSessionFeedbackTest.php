@@ -56,7 +56,7 @@ class ExamSessionFeedbackTest extends TestCase
         $this->actingAs($student)->post(route('student.exams.feedback.store', $session), [
             'rating' => 5,
             'testimonial' => 'Pengalaman ujian yang sangat baik.',
-        ])->assertRedirect(route('student.exams.index'));
+        ])->assertRedirect(route('student.exams.feedback', $session));
 
         $this->assertDatabaseHas('exam_session_feedback', [
             'exam_session_id' => $session->id,
@@ -165,6 +165,19 @@ class ExamSessionFeedbackTest extends TestCase
         $session->refresh();
 
         return $session;
+    }
+
+    public function test_feedback_page_exposes_ai_status_in_inertia_payload(): void
+    {
+        $student = User::factory()->create(['role' => UserRole::Student]);
+        $session = $this->createCompletedSessionWithFeedbackRow($student);
+
+        $this->actingAs($student)
+            ->get(route('student.exams.feedback', $session))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Student/Exams/Feedback')
+                ->where('session.ai_status', 'failed'));
     }
 
     /**

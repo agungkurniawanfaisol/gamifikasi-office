@@ -20,10 +20,10 @@ export default function LecturerCharts({
     return (
         <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm ring-1 ring-gray-100">
             <h3 className="mb-1 text-sm font-semibold text-gray-900">
-                Soal per kategori skill
+                Questions by skill category
             </h3>
             <p className="mb-4 text-xs text-gray-500">
-                Distribusi soal yang Anda buat
+                Distribution of questions you created
             </p>
             {hasData ? (
                 <div className="h-72 w-full">
@@ -58,7 +58,7 @@ export default function LecturerCharts({
                 </div>
             ) : (
                 <p className="flex h-48 items-center justify-center text-sm text-gray-500">
-                    Belum ada soal per skill.
+                    No questions by skill yet.
                 </p>
             )}
         </div>

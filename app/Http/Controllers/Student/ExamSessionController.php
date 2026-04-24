@@ -13,6 +13,7 @@ use App\Http\Requests\Exam\CompleteExamSessionRequest;
 use App\Http\Requests\Exam\StartExamSessionRequest;
 use App\Http\Requests\Exam\StoreExamSessionFeedbackRequest;
 use App\Http\Requests\Exam\SubmitExamAnswerRequest;
+use App\Jobs\GenerateExamSessionFeedbackJob;
 use App\Models\ExamSession;
 use App\Models\Level;
 use Illuminate\Http\RedirectResponse;
@@ -165,10 +166,30 @@ class ExamSessionController extends Controller
             $examSession->load('feedback');
         }
 
+        if ($this->shouldGenerateFeedback($examSession)) {
+            app()->call([new GenerateExamSessionFeedbackJob((int) $examSession->id), 'handle']);
+            $examSession->load('feedback');
+        }
+
         if ($examSession->feedback->isSubmitted()) {
-            return redirect()
-                ->route('student.exams.index')
-                ->with('status', 'Terima kasih atas feedback Anda.');
+            return Inertia::render('Student/Exams/Feedback', [
+                'session' => [
+                    'id' => $examSession->id,
+                    'status' => $examSession->status->value,
+                    'total_score' => $examSession->total_score,
+                    'max_possible_score' => $examSession->max_possible_score,
+                    'level' => $examSession->level,
+                    'completion_message' => $examSession->feedback->completion_message,
+                    'ai_status' => $examSession->feedback->ai_status?->value,
+                    'ai_error_message' => $examSession->feedback->ai_error_message,
+                ],
+                'feedback' => [
+                    'rating' => $examSession->feedback->rating,
+                    'testimonial' => $examSession->feedback->testimonial,
+                    'submitted_at' => $examSession->feedback->submitted_at?->toIso8601String(),
+                    'is_submitted' => true,
+                ],
+            ]);
         }
 
         return Inertia::render('Student/Exams/Feedback', [
@@ -179,6 +200,14 @@ class ExamSessionController extends Controller
                 'max_possible_score' => $examSession->max_possible_score,
                 'level' => $examSession->level,
                 'completion_message' => $examSession->feedback->completion_message,
+                'ai_status' => $examSession->feedback->ai_status?->value,
+                'ai_error_message' => $examSession->feedback->ai_error_message,
+            ],
+            'feedback' => [
+                'rating' => $examSession->feedback->rating,
+                'testimonial' => $examSession->feedback->testimonial,
+                'submitted_at' => $examSession->feedback->submitted_at?->toIso8601String(),
+                'is_submitted' => false,
             ],
         ]);
     }
@@ -195,6 +224,7 @@ class ExamSessionController extends Controller
         }
 
         $validated = $request->validated();
+        app(EnsureExamSessionFeedbackAction::class)->execute($examSession);
 
         $action->execute(
             session: $examSession,
@@ -204,8 +234,8 @@ class ExamSessionController extends Controller
         );
 
         return redirect()
-            ->route('student.exams.index')
-            ->with('status', 'Terima kasih atas testimoni dan penilaian Anda.');
+            ->route('student.exams.feedback', $examSession)
+            ->with('status', 'Feedback berhasil disimpan ke database.');
     }
 
     /**
@@ -319,5 +349,18 @@ class ExamSessionController extends Controller
     private function latestSessionPerUser(Collection $rows): Collection
     {
         return $rows->sortByDesc('id')->unique('user_id')->values();
+    }
+
+    private function shouldGenerateFeedback(ExamSession $examSession): bool
+    {
+        if ($examSession->feedback === null) {
+            return false;
+        }
+
+        if (request()->boolean('regenerate')) {
+            return true;
+        }
+
+        return $examSession->feedback->ai_status?->value !== 'ready';
     }
 }

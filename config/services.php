@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+        'fallback_models' => array_values(array_filter(array_map(
+            static fn (string $model): string => trim($model),
+            explode(',', (string) env('GEMINI_FALLBACK_MODELS', 'gemini-2.0-flash,gemini-flash-lite-latest'))
+        ))),
+        'timeout' => (int) env('GEMINI_TIMEOUT', 20),
+    ],
+
 ];

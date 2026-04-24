@@ -2,8 +2,9 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import MobileSidebarDrawer from '@/Components/MobileSidebarDrawer';
 import SidebarNav from '@/Components/SidebarNav';
+import { useAuditTrailTracker } from '@/hooks/useAuditTrailTracker';
 import { Link, usePage } from '@inertiajs/react';
-import { PropsWithChildren, ReactNode, useState } from 'react';
+import { PropsWithChildren, ReactNode, useEffect, useState } from 'react';
 
 export default function Authenticated({
     header,
@@ -12,13 +13,35 @@ export default function Authenticated({
 }: PropsWithChildren<{ header?: ReactNode; examMode?: boolean }>) {
     const user = usePage().props.auth.user!;
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+    const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false);
+    useAuditTrailTracker(Boolean(user));
+
+    useEffect(() => {
+        if (examMode || typeof window === 'undefined') {
+            return;
+        }
+
+        const stored = window.localStorage.getItem('sidebar:collapsed');
+        setDesktopSidebarCollapsed(stored === '1');
+    }, [examMode]);
+
+    useEffect(() => {
+        if (examMode || typeof window === 'undefined') {
+            return;
+        }
+
+        window.localStorage.setItem(
+            'sidebar:collapsed',
+            desktopSidebarCollapsed ? '1' : '0',
+        );
+    }, [desktopSidebarCollapsed, examMode]);
 
     return (
         <div
             className={
                 examMode
                     ? 'h-dvh max-h-dvh overflow-hidden bg-[#0f172a]'
-                    : 'h-screen overflow-hidden bg-gradient-to-b from-gray-100 to-gray-50'
+                    : 'h-screen overflow-hidden bg-[radial-gradient(ellipse_130%_90%_at_100%_-10%,rgba(99,102,241,0.14),transparent_55%),linear-gradient(180deg,#f8fafc_0%,#f8fafc_55%,#eef2ff_100%)]'
             }
         >
             <MobileSidebarDrawer
@@ -43,18 +66,26 @@ export default function Authenticated({
                     className={
                         examMode
                             ? 'hidden'
-                            : 'hidden w-72 shrink-0 border-r border-gray-200/80 bg-white md:block'
+                            : [
+                                  'hidden shrink-0 border-r border-indigo-100/80 bg-white/95 backdrop-blur transition-all duration-300 md:block',
+                                  desktopSidebarCollapsed
+                                      ? 'w-0 overflow-hidden border-r-0 opacity-0'
+                                      : 'w-72 opacity-100',
+                              ].join(' ')
                     }
                 >
-                    <div className="flex h-16 items-center gap-2 border-b border-gray-100 px-5">
+                    <div className="relative flex h-16 items-center gap-2 border-b border-indigo-100/80 px-5">
+                        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-indigo-300/80 to-transparent" />
                         <Link href="/" className="flex items-center gap-2">
-                            <ApplicationLogo className="h-7 w-7 fill-current text-gray-900" />
+                            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 shadow-sm">
+                                <ApplicationLogo className="h-6 w-6 fill-current text-white" />
+                            </span>
                             <span className="text-base font-semibold text-gray-900">
                                 Gamifikasi
                             </span>
                         </Link>
                     </div>
-                    <div className="h-[calc(100vh-64px)] overflow-y-auto">
+                    <div className="no-scrollbar h-[calc(100vh-64px)] overflow-y-auto">
                         <SidebarNav />
                     </div>
                 </aside>
@@ -64,7 +95,7 @@ export default function Authenticated({
                         className={
                             examMode
                                 ? 'z-40 shrink-0 border-b border-white/10 bg-slate-900/90 backdrop-blur-md'
-                                : 'sticky top-0 z-40 border-b border-gray-100/80 bg-white/95 backdrop-blur'
+                                : 'sticky top-0 z-40 border-b border-indigo-100/80 bg-white/90 backdrop-blur-xl'
                         }
                     >
                         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -72,7 +103,7 @@ export default function Authenticated({
                                 {!examMode && (
                                 <button
                                     type="button"
-                                    className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 md:hidden"
+                                    className="rounded-lg p-2 text-gray-600 transition hover:bg-indigo-50 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 md:hidden"
                                     onClick={() => setMobileSidebarOpen(true)}
                                     aria-label="Open sidebar"
                                 >
@@ -91,6 +122,39 @@ export default function Authenticated({
                                     </svg>
                                 </button>
                                 )}
+                                {!examMode && (
+                                    <button
+                                        type="button"
+                                        className="hidden rounded-lg p-2 text-gray-600 transition hover:bg-indigo-50 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 md:inline-flex"
+                                        onClick={() =>
+                                            setDesktopSidebarCollapsed((prev) => !prev)
+                                        }
+                                        aria-label={
+                                            desktopSidebarCollapsed
+                                                ? 'Expand sidebar'
+                                                : 'Collapse sidebar'
+                                        }
+                                        title={
+                                            desktopSidebarCollapsed
+                                                ? 'Expand sidebar'
+                                                : 'Collapse sidebar'
+                                        }
+                                    >
+                                        <svg
+                                            viewBox="0 0 24 24"
+                                            className="h-5 w-5"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M4 6h16M4 12h16M4 18h16"
+                                            />
+                                        </svg>
+                                    </button>
+                                )}
 
                                 <div
                                     className={
@@ -107,7 +171,7 @@ export default function Authenticated({
                                             className={
                                                 examMode
                                                     ? 'h-7 w-7 fill-current text-teal-400'
-                                                    : 'h-7 w-7 fill-current text-gray-900'
+                                                    : 'h-7 w-7 fill-current text-indigo-600'
                                             }
                                         />
                                         <span
@@ -122,7 +186,7 @@ export default function Authenticated({
                                     </Link>
                                     {examMode && (
                                         <span className="hidden rounded-full border border-teal-500/40 bg-teal-500/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-teal-300 sm:inline">
-                                            Mode ujian
+                                            Exam Mode
                                         </span>
                                     )}
                                 </div>
@@ -137,15 +201,15 @@ export default function Authenticated({
                                                     type="button"
                                                     className={
                                                         examMode
-                                                            ? 'inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm font-medium leading-4 text-white transition hover:bg-white/15 focus:outline-none'
-                                                            : 'inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-700 transition hover:bg-gray-50 hover:text-gray-900 focus:outline-none'
+                                                            ? 'inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm font-medium leading-4 text-white transition hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
+                                                            : 'inline-flex items-center gap-2 rounded-xl border border-indigo-100 bg-white/95 px-3 py-2 text-sm font-medium leading-4 text-gray-700 shadow-sm transition hover:bg-indigo-50 hover:text-indigo-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2'
                                                     }
                                                 >
                                                     <span
                                                         className={
                                                             examMode
                                                                 ? 'inline-flex h-7 w-7 items-center justify-center rounded-full bg-teal-500 text-xs font-semibold text-white'
-                                                                : 'inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-900 text-xs font-semibold text-white'
+                                                                : 'inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 text-xs font-semibold text-white'
                                                         }
                                                     >
                                                         {user.name.charAt(0).toUpperCase()}
@@ -192,7 +256,7 @@ export default function Authenticated({
                             className={
                                 examMode
                                     ? 'border-b border-white/10 bg-slate-900/50'
-                                    : 'border-b border-gray-100 bg-white/90'
+                                    : 'border-b border-indigo-100/80 bg-white/75 backdrop-blur'
                             }
                         >
                             <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">

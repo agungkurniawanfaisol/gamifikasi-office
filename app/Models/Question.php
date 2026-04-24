@@ -62,6 +62,16 @@ class Question extends Model
         return $this->hasMany(ExamAnswer::class);
     }
 
+    public function dailyActivityAnswers(): HasMany
+    {
+        return $this->hasMany(DailyActivityAnswer::class);
+    }
+
+    public function priorityPracticeAnswers(): HasMany
+    {
+        return $this->hasMany(PriorityPracticeAnswer::class);
+    }
+
     public function examQuestions(): HasMany
     {
         return $this->hasMany(ExamQuestion::class);

@@ -17,6 +17,12 @@ export default function Edit({
         email: string;
         role: Role;
         is_active: boolean;
+        phone_number: string | null;
+        gender: 'male' | 'female' | null;
+        birth_date: string | null;
+        address: string | null;
+        bio: string | null;
+        avatar_url: string | null;
     };
 }) {
     const { data, setData, put, processing, errors } = useForm<{
@@ -24,16 +30,34 @@ export default function Edit({
         email: string;
         role: Role;
         is_active: boolean;
+        phone_number: string;
+        gender: 'male' | 'female';
+        birth_date: string;
+        address: string;
+        bio: string;
+        avatar: File | null;
+        password: string;
+        password_confirmation: string;
     }>({
         name: user.name,
         email: user.email,
         role: user.role,
         is_active: user.is_active,
+        phone_number: user.phone_number ?? '',
+        gender: user.gender ?? 'male',
+        birth_date: user.birth_date ?? '',
+        address: user.address ?? '',
+        bio: user.bio ?? '',
+        avatar: null,
+        password: '',
+        password_confirmation: '',
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        put(route('admin.users.update', user.id));
+        put(route('admin.users.update', user.id), {
+            forceFormData: true,
+        });
     };
 
     return (
@@ -57,7 +81,167 @@ export default function Edit({
             <div className="py-8">
                 <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
                     <div className="overflow-hidden rounded-lg bg-white shadow-sm">
-                        <form onSubmit={submit} className="p-6 space-y-6">
+                        <form onSubmit={submit} className="space-y-6 p-6">
+                            <section className="space-y-4 rounded-xl border border-gray-200 bg-gray-50/60 p-4">
+                                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700">
+                                    Data Diri
+                                </h3>
+                                <p className="text-xs text-gray-600">
+                                    Lengkapi data diri berikut agar profil user
+                                    valid dan mudah diverifikasi.
+                                </p>
+
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <InputLabel
+                                            htmlFor="phone_number"
+                                            value="Nomor HP"
+                                        />
+                                        <TextInput
+                                            id="phone_number"
+                                            className="mt-1 block w-full"
+                                            value={data.phone_number}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'phone_number',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            required
+                                        />
+                                        <InputError
+                                            className="mt-2"
+                                            message={errors.phone_number}
+                                        />
+                                    </div>
+                                    <div>
+                                        <InputLabel
+                                            htmlFor="gender"
+                                            value="Jenis Kelamin"
+                                        />
+                                        <select
+                                            id="gender"
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            value={data.gender}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'gender',
+                                                    e.target.value as
+                                                        | 'male'
+                                                        | 'female',
+                                                )
+                                            }
+                                            required
+                                        >
+                                            <option value="male">
+                                                Laki-laki
+                                            </option>
+                                            <option value="female">
+                                                Perempuan
+                                            </option>
+                                        </select>
+                                        <InputError
+                                            className="mt-2"
+                                            message={errors.gender}
+                                        />
+                                    </div>
+                                    <div>
+                                        <InputLabel
+                                            htmlFor="birth_date"
+                                            value="Date Lahir"
+                                        />
+                                        <TextInput
+                                            id="birth_date"
+                                            type="date"
+                                            className="mt-1 block w-full"
+                                            value={data.birth_date}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'birth_date',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            required
+                                        />
+                                        <InputError
+                                            className="mt-2"
+                                            message={errors.birth_date}
+                                        />
+                                    </div>
+                                    <div>
+                                        <InputLabel
+                                            htmlFor="avatar"
+                                            value="Avatar"
+                                        />
+                                        <input
+                                            id="avatar"
+                                            type="file"
+                                            accept="image/jpeg,image/png,image/webp"
+                                            className="mt-1 block w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-gray-900 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-gray-800"
+                                            onChange={(e) =>
+                                                setData(
+                                                    'avatar',
+                                                    e.target.files?.[0] ?? null,
+                                                )
+                                            }
+                                        />
+                                        <InputError
+                                            className="mt-2"
+                                            message={errors.avatar}
+                                        />
+                                        {user.avatar_url ? (
+                                            <img
+                                                src={user.avatar_url}
+                                                alt={`Avatar ${user.name}`}
+                                                className="mt-3 h-16 w-16 rounded-full object-cover ring-2 ring-white shadow"
+                                            />
+                                        ) : null}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <InputLabel htmlFor="address" value="Alamat" />
+                                    <textarea
+                                        id="address"
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                        rows={3}
+                                        value={data.address}
+                                        onChange={(e) =>
+                                            setData('address', e.target.value)
+                                        }
+                                        required
+                                    />
+                                    <InputError
+                                        className="mt-2"
+                                        message={errors.address}
+                                    />
+                                </div>
+
+                                <div>
+                                    <InputLabel
+                                        htmlFor="bio"
+                                        value="Bio (opsional)"
+                                    />
+                                    <textarea
+                                        id="bio"
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                        rows={3}
+                                        value={data.bio}
+                                        onChange={(e) =>
+                                            setData('bio', e.target.value)
+                                        }
+                                    />
+                                    <InputError
+                                        className="mt-2"
+                                        message={errors.bio}
+                                    />
+                                </div>
+                            </section>
+
+                            <section className="space-y-4 rounded-xl border border-gray-200 p-4">
+                                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700">
+                                    Akun
+                                </h3>
                             <div>
                                 <InputLabel htmlFor="name" value="Name" />
                                 <TextInput
@@ -134,6 +318,65 @@ export default function Edit({
                                     message={errors.is_active}
                                 />
                             </div>
+                            </section>
+
+                            <section className="space-y-4 rounded-xl border border-gray-200 p-4">
+                                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700">
+                                    Ubah Password
+                                </h3>
+                                <p className="text-xs text-gray-600">
+                                    Kosongkan jika tidak ingin mengganti
+                                    password.
+                                </p>
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <InputLabel
+                                            htmlFor="password"
+                                            value="Password Baru"
+                                        />
+                                        <TextInput
+                                            id="password"
+                                            type="password"
+                                            className="mt-1 block w-full"
+                                            value={data.password}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'password',
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                        <InputError
+                                            className="mt-2"
+                                            message={errors.password}
+                                        />
+                                    </div>
+                                    <div>
+                                        <InputLabel
+                                            htmlFor="password_confirmation"
+                                            value="Konfirmasi Password"
+                                        />
+                                        <TextInput
+                                            id="password_confirmation"
+                                            type="password"
+                                            className="mt-1 block w-full"
+                                            value={data.password_confirmation}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'password_confirmation',
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                        <InputError
+                                            className="mt-2"
+                                            message={
+                                                errors.password_confirmation
+                                            }
+                                        />
+                                    </div>
+                                </div>
+                            </section>
 
                             <div className="flex items-center justify-end gap-3">
                                 <PrimaryButton disabled={processing}>
