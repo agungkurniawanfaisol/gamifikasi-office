@@ -19,6 +19,21 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+/*
+| Public JSON health check (same stack as other web routes).
+| Use when diagnosing deploy: if this works but pages fail, suspect assets/Inertia.
+| Registered here (not only routes/api.php) so shared hosts never miss the route file.
+*/
+Route::get('/api/health', function () {
+    return response()->json([
+        'status' => 'ok',
+        'service' => 'laravel',
+        'timestamp' => now()->toIso8601String(),
+        'laravel' => Application::VERSION,
+        'php' => PHP_VERSION,
+    ]);
+})->name('api.health');
+
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
