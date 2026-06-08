@@ -1,5 +1,9 @@
+import DangerButton from '@/Components/DangerButton';
+import Modal from '@/Components/Modal';
+import SecondaryButton from '@/Components/SecondaryButton';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 
 type QuestionRow = {
     id: number;
@@ -24,6 +28,28 @@ export default function Index({
         links: PaginationLink[];
     };
 }) {
+    const [pendingDelete, setPendingDelete] = useState<QuestionRow | null>(null);
+    const [deleting, setDeleting] = useState(false);
+
+    const closeDeleteModal = () => {
+        if (!deleting) {
+            setPendingDelete(null);
+        }
+    };
+
+    const confirmDelete = () => {
+        if (!pendingDelete) {
+            return;
+        }
+
+        router.delete(route('lecturer.questions.destroy', pendingDelete.id), {
+            preserveScroll: true,
+            onBefore: () => setDeleting(true),
+            onFinish: () => setDeleting(false),
+            onSuccess: () => setPendingDelete(null),
+        });
+    };
+
     return (
         <AuthenticatedLayout
             header={
@@ -109,17 +135,15 @@ export default function Index({
                                                     >
                                                         Edit
                                                     </Link>
-                                                    <Link
-                                                        href={route(
-                                                            'lecturer.questions.destroy',
-                                                            q.id,
-                                                        )}
-                                                        method="delete"
-                                                        as="button"
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setPendingDelete(q)
+                                                        }
                                                         className="font-semibold text-red-600 hover:underline"
                                                     >
                                                         Delete
-                                                    </Link>
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -156,6 +180,48 @@ export default function Index({
                     </div>
                 </div>
             </div>
+
+            <Modal
+                show={pendingDelete !== null}
+                onClose={closeDeleteModal}
+                maxWidth="md"
+            >
+                <div className="p-6">
+                    <h2 className="text-lg font-medium text-gray-900">
+                        Hapus soal dari bank?
+                    </h2>
+                    <p className="mt-2 text-sm text-gray-600">
+                        Soal beserta opsi dan lampiran terkait akan dihapus
+                        permanen. Tindakan ini tidak dapat dibatalkan.
+                    </p>
+                    {pendingDelete && (
+                        <p className="mt-3 rounded-md bg-gray-50 p-3 text-sm text-gray-800">
+                            <span className="font-semibold text-gray-500">
+                                Pratinjau:{' '}
+                            </span>
+                            <span className="line-clamp-3">
+                                {pendingDelete.question_text}
+                            </span>
+                        </p>
+                    )}
+                    <div className="mt-6 flex flex-wrap justify-end gap-3">
+                        <SecondaryButton
+                            type="button"
+                            onClick={closeDeleteModal}
+                            disabled={deleting}
+                        >
+                            Tidak
+                        </SecondaryButton>
+                        <DangerButton
+                            type="button"
+                            onClick={confirmDelete}
+                            disabled={deleting}
+                        >
+                            {deleting ? 'Menghapus…' : 'Ya, hapus'}
+                        </DangerButton>
+                    </div>
+                </div>
+            </Modal>
         </AuthenticatedLayout>
     );
 }
