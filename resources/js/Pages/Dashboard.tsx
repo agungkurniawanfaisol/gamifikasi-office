@@ -8,15 +8,16 @@ import type { DashboardPageProps } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 
 export default function Dashboard() {
+    const props = usePage<DashboardPageProps>().props;
     const {
         role,
         lottieUrl,
         student,
         lecturer,
         admin,
-    } = usePage<DashboardPageProps>().props;
+    } = props;
 
-    const user = usePage<DashboardPageProps>().props.auth.user;
+    const user = props.auth?.user ?? null;
 
     return (
         <AuthenticatedLayout

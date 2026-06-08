@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\SharesInertiaAuthPayload;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\InstructorInsightIndexRequest;
 use App\Services\Monitoring\InstructorInsightService;
@@ -12,6 +13,8 @@ use Inertia\Response;
 
 class InstructorInsightController extends Controller
 {
+    use SharesInertiaAuthPayload;
+
     public function __construct(
         private readonly InstructorInsightService $insightService,
     ) {
@@ -23,6 +26,7 @@ class InstructorInsightController extends Controller
         $insights = $this->insightService->buildInsights($filters, $request->user());
 
         return Inertia::render('Admin/InstructorInsights/Index', [
+            ...$this->inertiaAuthPayload($request),
             'filters' => $filters,
             ...$insights,
         ]);

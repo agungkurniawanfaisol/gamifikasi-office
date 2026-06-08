@@ -76,6 +76,10 @@ class DashboardTest extends TestCase
         $response->assertInertia(fn (Assert $page) => $page
             ->component('Dashboard')
             ->where('role', 'admin')
+            ->has('auth.user', fn (Assert $u) => $u
+                ->where('id', $user->id)
+                ->where('email', $user->email)
+                ->etc())
             ->has('admin', fn (Assert $a) => $a
                 ->has('totalUsers')
                 ->has('completedExamSessions')

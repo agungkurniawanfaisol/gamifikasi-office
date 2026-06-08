@@ -10,7 +10,8 @@ export interface User {
 export type PageProps<
     T extends Record<string, unknown> = Record<string, unknown>,
 > = T & {
-    auth: {
+    /** Present on most Inertia pages via HandleInertiaRequests; may be absent on some edge deploys. */
+    auth?: {
         user: User | null;
     };
 };

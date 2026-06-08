@@ -13,6 +13,7 @@ export default function Welcome({
     laravelVersion: string;
     phpVersion: string;
 }>) {
+    const currentUser = auth?.user ?? null;
     const features = [
         'Adaptive learning based on skill level',
         'Exams with total timer and per-question timer',
@@ -113,7 +114,7 @@ export default function Welcome({
                                 className="flex flex-wrap items-center justify-end gap-2 sm:gap-3"
                                 aria-label="Main"
                             >
-                                {auth.user ? (
+                                {currentUser ? (
                                     <Link
                                         href={route('dashboard')}
                                         className="rounded-full bg-stone-900 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-stone-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2"
@@ -175,7 +176,7 @@ export default function Welcome({
                         </p>
 
                         <div className="mt-8 flex w-full max-w-md flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center">
-                            {auth.user ? (
+                            {currentUser ? (
                                 <Link
                                     href={route('dashboard')}
                                     className="inline-flex items-center justify-center rounded-2xl bg-stone-900 px-8 py-3.5 text-base font-semibold text-white shadow-xl transition hover:bg-stone-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2"
@@ -347,7 +348,7 @@ export default function Welcome({
                                 Create an account, choose a level, take exams, and track your progress every day.
                             </p>
                             <div className="mt-5">
-                                {auth.user ? (
+                                {currentUser ? (
                                     <Link
                                         href={route('dashboard')}
                                         className="inline-flex rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-stone-900"

@@ -3,6 +3,7 @@ import Dropdown from '@/Components/Dropdown';
 import MobileSidebarDrawer from '@/Components/MobileSidebarDrawer';
 import SidebarNav from '@/Components/SidebarNav';
 import { useAuditTrailTracker } from '@/hooks/useAuditTrailTracker';
+import type { PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { PropsWithChildren, ReactNode, useEffect, useState } from 'react';
 
@@ -11,10 +12,12 @@ export default function Authenticated({
     children,
     examMode = false,
 }: PropsWithChildren<{ header?: ReactNode; examMode?: boolean }>) {
-    const user = usePage().props.auth.user!;
+    const user = usePage<PageProps>().props.auth?.user ?? null;
+    const displayName = user?.name?.trim() ? user.name : 'User';
+    const displayInitial = displayName.charAt(0).toUpperCase();
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
     const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false);
-    useAuditTrailTracker(Boolean(user));
+    useAuditTrailTracker(Boolean(user?.id));
 
     useEffect(() => {
         if (examMode || typeof window === 'undefined') {
@@ -212,9 +215,9 @@ export default function Authenticated({
                                                                 : 'inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 text-xs font-semibold text-white'
                                                         }
                                                     >
-                                                        {user.name.charAt(0).toUpperCase()}
+                                                        {displayInitial}
                                                     </span>
-                                                    {user.name}
+                                                    {displayName}
                                                     <svg
                                                         className="ms-2 h-4 w-4"
                                                         xmlns="http://www.w3.org/2000/svg"

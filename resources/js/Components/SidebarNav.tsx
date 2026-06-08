@@ -44,7 +44,7 @@ function NavItem({
 }
 
 export default function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
-    const user = usePage().props.auth.user;
+    const user = usePage().props.auth?.user;
     const role: Role = user?.role;
     const transactionsActive = route().current('admin.exam-headers.*')
         || route().current('admin.exam-session-feedback.*')
@@ -61,8 +61,14 @@ export default function SidebarNav({ onNavigate }: { onNavigate?: () => void }) 
         || route().current('admin.audit-trails.*');
     const accountActive = route().current('profile.*');
 
+    // Lecturer/admin always show the "Main" group (Dashboard) unless they collapse it;
+    // `mainActive` is only true on student routes + dashboard, so without this, visiting
+    // e.g. Question Bank leaves Main collapsed and looks like "only one menu".
+    const mainInitiallyOpen =
+        mainActive || role === 'admin' || role === 'lecturer';
+
     const [transactionsOpen, setTransactionsOpen] = useState(transactionsActive);
-    const [mainOpen, setMainOpen] = useState(mainActive);
+    const [mainOpen, setMainOpen] = useState(mainInitiallyOpen);
     const [masterOpen, setMasterOpen] = useState(masterActive);
     const [accountOpen, setAccountOpen] = useState(accountActive);
 

@@ -160,7 +160,7 @@ export default function Index({
     leaderboardByLevelAllAttempts: Record<string, RankingBucket>;
 }) {
     const [mode, setMode] = useState<RankingsMode>('latest');
-    const userId = usePage().props.auth.user?.id ?? 0;
+    const userId = usePage().props.auth?.user?.id ?? 0;
 
     const global =
         mode === 'latest' ? globalLeaderboardLatest : globalLeaderboardAllAttempts;
