@@ -16,6 +16,7 @@ use App\Http\Requests\Exam\SubmitExamAnswerRequest;
 use App\Jobs\GenerateExamSessionFeedbackJob;
 use App\Models\ExamSession;
 use App\Models\Level;
+use App\Services\ExamSessions\ExamSessionQuestionReviewBuilder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -171,6 +172,21 @@ class ExamSessionController extends Controller
             $examSession->load('feedback');
         }
 
+        $examSession->load([
+            'sessionQuestions' => function ($query): void {
+                $query->select(['id', 'exam_session_id', 'question_id', 'order', 'expected_duration_seconds'])
+                    ->with([
+                        'question:id,type,question_text',
+                        'question.options:id,question_id,option_text,is_correct,order',
+                        'answer:id,exam_session_question_id,selected_option_id,answer_text,is_correct,answered_at',
+                        'answer.selectedOption:id,option_text',
+                    ])
+                    ->orderBy('order');
+            },
+        ]);
+
+        $questionReview = app(ExamSessionQuestionReviewBuilder::class)->forSession($examSession);
+
         if ($examSession->feedback->isSubmitted()) {
             return Inertia::render('Student/Exams/Feedback', [
                 'session' => [
@@ -189,6 +205,7 @@ class ExamSessionController extends Controller
                     'submitted_at' => $examSession->feedback->submitted_at?->toIso8601String(),
                     'is_submitted' => true,
                 ],
+                'question_review' => $questionReview,
             ]);
         }
 
@@ -209,6 +226,7 @@ class ExamSessionController extends Controller
                 'submitted_at' => $examSession->feedback->submitted_at?->toIso8601String(),
                 'is_submitted' => false,
             ],
+            'question_review' => $questionReview,
         ]);
     }
 
