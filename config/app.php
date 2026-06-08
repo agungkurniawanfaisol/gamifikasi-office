@@ -56,6 +56,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Asset URL
+    |--------------------------------------------------------------------------
+    |
+    | When your application is served from a URL prefix (e.g. /public on some
+    | hosts), set ASSET_URL to that same origin + prefix so @vite and asset()
+    | URLs match where static files are actually served.
+    |
+    */
+
+    'asset_url' => env('ASSET_URL'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Dashboard Lottie animation (optional JSON URL)
     |--------------------------------------------------------------------------
     */
