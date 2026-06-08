@@ -202,7 +202,8 @@ class StudentMonitoringTest extends TestCase
             ->has('details', 1)
             ->where('details.0.source', 'exam')
             ->where('details.0.question', 'Monitoring question')
-            ->where('details.0.correct_option', 'Correct answer')
+            ->where('details.0.student_answer', 'Wrong answer')
+            ->where('details.0.correct_answer', 'Correct answer')
             ->where('details.0.is_correct', false));
     }
 
@@ -259,6 +260,146 @@ class StudentMonitoringTest extends TestCase
             ->component('Admin/StudentMonitoring/Index')
             ->where('selectedStudent.id', $student->id)
             ->has('details', 2));
+    }
+
+    public function test_monitoring_detail_shows_fill_blank_answer_text(): void
+    {
+        $lecturer = User::factory()->create([
+            'role' => UserRole::Lecturer,
+            'email_verified_at' => now(),
+        ]);
+        $admin = User::factory()->create([
+            'role' => UserRole::Admin,
+            'email_verified_at' => now(),
+        ]);
+        $student = User::factory()->create([
+            'role' => UserRole::Student,
+            'email_verified_at' => now(),
+        ]);
+
+        [$level, $skill] = $this->seedBaseCatalog();
+        $question = Question::query()->create([
+            'skill_category_id' => $skill->id,
+            'level_id' => $level->id,
+            'type' => 'fill_blank',
+            'question_text' => 'Capital of France?',
+            'narrative_text' => null,
+            'explanation' => null,
+            'created_by' => $lecturer->id,
+            'is_active' => true,
+        ]);
+
+        DB::table('question_options')->insert([
+            'question_id' => $question->id,
+            'option_text' => 'Paris',
+            'is_correct' => true,
+            'order' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->seedFillBlankExamSession(
+            $student->id,
+            $level->id,
+            $skill->id,
+            $question->id,
+            'paris',
+            now(),
+        );
+
+        $today = now()->toDateString();
+        $this->actingAs($admin)->get(route('admin.student-monitoring.show', [
+            'student' => $student->id,
+            'source' => 'exam',
+            'from' => $today,
+            'to' => $today,
+        ]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Admin/StudentMonitoring/Index')
+                ->has('details', 1)
+                ->where('details.0.question_type', 'fill_blank')
+                ->where('details.0.student_answer', 'paris')
+                ->where('details.0.correct_answer', 'Paris'));
+    }
+
+    public function test_monitoring_detail_includes_unanswered_question(): void
+    {
+        $lecturer = User::factory()->create([
+            'role' => UserRole::Lecturer,
+            'email_verified_at' => now(),
+        ]);
+        $admin = User::factory()->create([
+            'role' => UserRole::Admin,
+            'email_verified_at' => now(),
+        ]);
+        $student = User::factory()->create([
+            'role' => UserRole::Student,
+            'email_verified_at' => now(),
+        ]);
+
+        [$level, $skill] = $this->seedBaseCatalog();
+        [$q1, , $wrongOptionId] = $this->seedQuestionWithOptions(
+            $level->id,
+            $skill->id,
+            $lecturer->id,
+        );
+
+        $q2 = Question::query()->create([
+            'skill_category_id' => $skill->id,
+            'level_id' => $level->id,
+            'type' => 'multiple_choice',
+            'question_text' => 'Second monitoring question',
+            'narrative_text' => null,
+            'explanation' => null,
+            'created_by' => $lecturer->id,
+            'is_active' => true,
+        ]);
+
+        DB::table('question_options')->insert([
+            [
+                'question_id' => $q2->id,
+                'option_text' => 'Q2 correct',
+                'is_correct' => true,
+                'order' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'question_id' => $q2->id,
+                'option_text' => 'Q2 wrong',
+                'is_correct' => false,
+                'order' => 2,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
+        $this->seedExamSessionTwoQuestionsOneAnswered(
+            $student->id,
+            $level->id,
+            $skill->id,
+            $q1->id,
+            $q2->id,
+            $wrongOptionId,
+            now(),
+        );
+
+        $today = now()->toDateString();
+        $this->actingAs($admin)->get(route('admin.student-monitoring.show', [
+            'student' => $student->id,
+            'source' => 'exam',
+            'from' => $today,
+            'to' => $today,
+        ]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Admin/StudentMonitoring/Index')
+                ->has('details', 2)
+                ->where('details.0.is_correct', false)
+                ->where('details.1.question', 'Second monitoring question')
+                ->where('details.1.student_answer', '—')
+                ->where('details.1.is_correct', null));
     }
 
     /**
@@ -364,6 +505,107 @@ class StudentMonitoringTest extends TestCase
             'answer_text' => null,
             'is_correct' => $isCorrect,
             'score' => $isCorrect ? 10 : 0,
+            'answered_at' => $completedAt,
+            'time_spent_seconds' => 30,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    private function seedFillBlankExamSession(
+        int $studentId,
+        int $levelId,
+        int $skillId,
+        int $questionId,
+        string $answerText,
+        \DateTimeInterface $completedAt,
+    ): void {
+        $sessionId = DB::table('exam_sessions')->insertGetId([
+            'user_id' => $studentId,
+            'level_id' => $levelId,
+            'skill_category_id' => $skillId,
+            'status' => ExamStatus::Completed->value,
+            'randomization_seed' => 12345,
+            'total_score' => 1,
+            'max_possible_score' => 1,
+            'started_at' => now()->subMinutes(20),
+            'completed_at' => $completedAt,
+            'duration_seconds' => 1200,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $sessionQuestionId = DB::table('exam_session_questions')->insertGetId([
+            'exam_session_id' => $sessionId,
+            'question_id' => $questionId,
+            'order' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('exam_answers')->insert([
+            'exam_session_id' => $sessionId,
+            'exam_session_question_id' => $sessionQuestionId,
+            'question_id' => $questionId,
+            'selected_option_id' => null,
+            'answer_text' => $answerText,
+            'is_correct' => true,
+            'score' => 1,
+            'answered_at' => $completedAt,
+            'time_spent_seconds' => 30,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    private function seedExamSessionTwoQuestionsOneAnswered(
+        int $studentId,
+        int $levelId,
+        int $skillId,
+        int $questionOneId,
+        int $questionTwoId,
+        int $selectedWrongOptionId,
+        \DateTimeInterface $completedAt,
+    ): void {
+        $sessionId = DB::table('exam_sessions')->insertGetId([
+            'user_id' => $studentId,
+            'level_id' => $levelId,
+            'skill_category_id' => $skillId,
+            'status' => ExamStatus::Completed->value,
+            'randomization_seed' => 12345,
+            'total_score' => 0,
+            'max_possible_score' => 2,
+            'started_at' => now()->subMinutes(20),
+            'completed_at' => $completedAt,
+            'duration_seconds' => 1200,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $sq1 = DB::table('exam_session_questions')->insertGetId([
+            'exam_session_id' => $sessionId,
+            'question_id' => $questionOneId,
+            'order' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('exam_session_questions')->insertGetId([
+            'exam_session_id' => $sessionId,
+            'question_id' => $questionTwoId,
+            'order' => 2,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('exam_answers')->insert([
+            'exam_session_id' => $sessionId,
+            'exam_session_question_id' => $sq1,
+            'question_id' => $questionOneId,
+            'selected_option_id' => $selectedWrongOptionId,
+            'answer_text' => null,
+            'is_correct' => false,
+            'score' => 0,
             'answered_at' => $completedAt,
             'time_spent_seconds' => 30,
             'created_at' => now(),

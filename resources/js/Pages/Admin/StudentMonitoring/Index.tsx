@@ -25,13 +25,30 @@ type AttemptRow = {
 
 type DetailRow = {
     source: 'exam' | 'daily';
+    exam_session_id: number | null;
     attempt_label: string;
     question: string | null;
-    selected_option: string | null;
-    correct_option: string | null;
-    is_correct: boolean;
+    question_type?: string;
+    student_answer: string;
+    correct_answer: string | null;
+    is_correct: boolean | null;
     answered_at: string | null;
+    session_completed_at?: string | null;
+    completion_message?: string | null;
+    ai_status?: string | null;
+    rating?: number | null;
+    testimonial?: string | null;
+    feedback_submitted_at?: string | null;
 };
+
+type DetailGroup =
+    | {
+          kind: 'exam_session';
+          sessionId: number;
+          header: DetailRow;
+          questions: DetailRow[];
+      }
+    | { kind: 'daily'; row: DetailRow };
 
 type MonitoringPageProps = PageProps<{
     filters: Filters;
@@ -71,6 +88,31 @@ export default function Index({
         }),
         [from, to, source, search],
     );
+
+    const detailGroups = useMemo((): DetailGroup[] => {
+        const out: DetailGroup[] = [];
+        for (const row of details) {
+            if (row.source === 'exam' && row.exam_session_id != null) {
+                const last = out[out.length - 1];
+                if (
+                    last?.kind === 'exam_session' &&
+                    last.sessionId === row.exam_session_id
+                ) {
+                    last.questions.push(row);
+                } else {
+                    out.push({
+                        kind: 'exam_session',
+                        sessionId: row.exam_session_id,
+                        header: row,
+                        questions: [row],
+                    });
+                }
+            } else {
+                out.push({ kind: 'daily', row });
+            }
+        }
+        return out;
+    }, [details]);
 
     const submitFilters = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -275,9 +317,9 @@ export default function Index({
                                                             'admin.student-monitoring.show',
                                                             {
                                                                 student: row.student_id,
+                                                                ...queryParams,
                                                             },
                                                         )}
-                                                        data={queryParams}
                                                         preserveScroll
                                                         preserveState
                                                         className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white transition hover:bg-slate-700"
@@ -326,9 +368,9 @@ export default function Index({
                                                 'admin.student-monitoring.show',
                                                 {
                                                     student: row.student_id,
+                                                    ...queryParams,
                                                 },
                                             )}
-                                            data={queryParams}
                                             preserveScroll
                                             preserveState
                                             className="mt-3 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white transition hover:bg-slate-700"
@@ -384,8 +426,10 @@ export default function Index({
                                 </p>
                             </div>
                             <Link
-                                href={route('admin.student-monitoring.index')}
-                                data={queryParams}
+                                href={route(
+                                    'admin.student-monitoring.index',
+                                    queryParams,
+                                )}
                                 preserveScroll
                                 preserveState
                                 className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
@@ -400,48 +444,38 @@ export default function Index({
                                     No answer details for this filter.
                                 </p>
                             ) : (
-                                <div className="grid gap-3 md:grid-cols-2">
-                                    {details.map((detail, index) => (
-                                        <article
-                                            key={`${detail.source}-${index}`}
-                                            className="rounded-xl border border-slate-200 p-3"
-                                        >
-                                            <div className="flex items-center justify-between gap-2">
-                                                <SourceBadge
-                                                    source={detail.source}
-                                                />
-                                                <span className="text-[11px] text-slate-500">
-                                                    {detail.answered_at ?? '-'}
-                                                </span>
-                                            </div>
-                                            <p className="mt-2 text-xs font-semibold text-slate-700">
-                                                {detail.attempt_label}
-                                            </p>
-                                            <p className="mt-2 text-sm font-medium text-slate-900">
-                                                {detail.question}
-                                            </p>
-                                            <p className="mt-2 text-xs text-slate-600">
-                                                Answer:{' '}
-                                                {detail.selected_option ?? '-'}
-                                            </p>
-                                            <p className="text-xs text-slate-600">
-                                                Key:{' '}
-                                                {detail.correct_option ?? '-'}
-                                            </p>
-                                            <span
-                                                className={[
-                                                    'mt-2 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold',
-                                                    detail.is_correct
-                                                        ? 'bg-emerald-50 text-emerald-700'
-                                                        : 'bg-rose-50 text-rose-700',
-                                                ].join(' ')}
+                                <div className="flex flex-col gap-8">
+                                    {detailGroups.map((group, groupIndex) =>
+                                        group.kind === 'exam_session' ? (
+                                            <section
+                                                key={`exam-${group.sessionId}-${groupIndex}`}
+                                                className="space-y-3"
                                             >
-                                                {detail.is_correct
-                                                    ? 'Correct'
-                                                    : 'Wrong'}
-                                            </span>
-                                        </article>
-                                    ))}
+                                                <ExamSessionFeedbackBanner
+                                                    row={group.header}
+                                                />
+                                                <div className="grid gap-3 md:grid-cols-2">
+                                                    {group.questions.map(
+                                                        (detail, qIndex) => (
+                                                            <MonitoringQuestionCard
+                                                                key={`${group.sessionId}-q-${qIndex}`}
+                                                                detail={detail}
+                                                            />
+                                                        ),
+                                                    )}
+                                                </div>
+                                            </section>
+                                        ) : (
+                                            <div
+                                                key={`daily-${groupIndex}-${group.row.answered_at ?? ''}`}
+                                                className="grid gap-3 md:grid-cols-2"
+                                            >
+                                                <MonitoringQuestionCard
+                                                    detail={group.row}
+                                                />
+                                            </div>
+                                        ),
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -449,6 +483,129 @@ export default function Index({
                 </div>
             ) : null}
         </AuthenticatedLayout>
+    );
+}
+
+function ExamSessionFeedbackBanner({ row }: { row: DetailRow }) {
+    return (
+        <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-4">
+            <div className="flex flex-wrap items-center gap-2">
+                <SourceBadge source="exam" />
+                {row.ai_status ? (
+                    <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+                        AI status: {row.ai_status}
+                    </span>
+                ) : null}
+                {row.session_completed_at ? (
+                    <span className="text-[11px] text-slate-600">
+                        Session completed: {row.session_completed_at}
+                    </span>
+                ) : null}
+            </div>
+            <p className="mt-2 text-xs font-semibold text-slate-800">
+                {row.attempt_label}
+            </p>
+            {row.completion_message ? (
+                <>
+                    <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                        AI feedback
+                    </p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-900">
+                        {row.completion_message}
+                    </p>
+                </>
+            ) : (
+                <p className="mt-3 text-xs text-slate-600">
+                    No AI feedback text stored for this session yet.
+                </p>
+            )}
+            <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                    Student testimonial
+                </p>
+                {row.rating != null ? (
+                    <p className="mt-1 text-sm text-slate-800">
+                        Rating: {row.rating} / 5
+                    </p>
+                ) : (
+                    <p className="mt-1 text-xs text-slate-500">No rating submitted.</p>
+                )}
+                {row.testimonial ? (
+                    <p className="mt-2 text-sm text-slate-800">{row.testimonial}</p>
+                ) : (
+                    <p className="mt-2 text-xs text-slate-500">
+                        No testimonial submitted for this session.
+                    </p>
+                )}
+                {row.feedback_submitted_at ? (
+                    <p className="mt-2 text-[11px] text-slate-500">
+                        Feedback saved: {row.feedback_submitted_at}
+                    </p>
+                ) : null}
+            </div>
+        </div>
+    );
+}
+
+function MonitoringQuestionCard({ detail }: { detail: DetailRow }) {
+    return (
+        <article className="rounded-xl border border-slate-200 p-3">
+            <div className="flex items-center justify-between gap-2">
+                <SourceBadge source={detail.source} />
+                <span className="text-[11px] text-slate-500">
+                    {detail.answered_at ?? '—'}
+                </span>
+            </div>
+            <p className="mt-2 text-xs font-semibold text-slate-700">
+                {detail.attempt_label}
+            </p>
+            <p className="mt-2 text-sm font-medium text-slate-900">
+                {detail.question}
+            </p>
+            {detail.question_type ? (
+                <p className="mt-1 text-[11px] text-slate-500">
+                    {detail.question_type.replace(/_/g, ' ')}
+                </p>
+            ) : null}
+            <p className="mt-2 text-xs text-slate-600">
+                <span className="font-medium text-slate-700">Answer:</span>{' '}
+                <span className="break-words">{detail.student_answer}</span>
+            </p>
+            <p className="text-xs text-slate-600">
+                <span className="font-medium text-slate-700">Key:</span>{' '}
+                <span className="break-words">
+                    {detail.correct_answer ?? '—'}
+                </span>
+            </p>
+            <DetailResultBadge isCorrect={detail.is_correct} />
+        </article>
+    );
+}
+
+function DetailResultBadge({
+    isCorrect,
+}: {
+    isCorrect: boolean | null;
+}) {
+    if (isCorrect === null) {
+        return (
+            <span className="mt-2 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
+                Unanswered
+            </span>
+        );
+    }
+
+    return (
+        <span
+            className={[
+                'mt-2 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold',
+                isCorrect
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : 'bg-rose-50 text-rose-700',
+            ].join(' ')}
+        >
+            {isCorrect ? 'Correct' : 'Wrong'}
+        </span>
     );
 }
 

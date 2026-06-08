@@ -91,6 +91,8 @@ class ExamSessionFeedbackTest extends TestCase
             'rating' => 4,
             'testimonial' => 'Bagus sekali.',
             'submitted_at' => now(),
+            'completion_message' => 'AI summary for admin table.',
+            'ai_status' => 'ready',
         ]);
 
         $this->actingAs($admin)
@@ -98,7 +100,9 @@ class ExamSessionFeedbackTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Admin/ExamSessionFeedback/Index')
-                ->has('feedbacks.data', 1));
+                ->has('feedbacks.data', 1)
+                ->where('feedbacks.data.0.completion_message', 'AI summary for admin table.')
+                ->where('feedbacks.data.0.ai_status', 'ready'));
     }
 
     public function test_lecturer_can_view_feedback_index(): void
@@ -177,7 +181,11 @@ class ExamSessionFeedbackTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Student/Exams/Feedback')
-                ->where('session.ai_status', 'failed'));
+                ->where('session.ai_status', 'failed')
+                ->has('question_review', 1)
+                ->where('question_review.0.question_text', 'Question 1')
+                ->where('question_review.0.student_answer', '2')
+                ->where('question_review.0.correct_answer', '2'));
     }
 
     /**

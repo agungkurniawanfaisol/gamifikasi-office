@@ -6,9 +6,9 @@ use App\Enums\ExamStatus;
 use App\Enums\UserRole;
 use App\Models\DailyActivityAnswer;
 use App\Models\DailyActivityLog;
-use App\Models\ExamAnswer;
 use App\Models\ExamSession;
 use App\Models\User;
+use App\Services\ExamSessions\ExamSessionQuestionReviewBuilder;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,6 +16,10 @@ use Illuminate\Support\Collection;
 
 class StudentMonitoringQueryService
 {
+    public function __construct(
+        private readonly ExamSessionQuestionReviewBuilder $questionReviewBuilder,
+    ) {}
+
     /**
      * @param array{from:string,to:string,source:string,search:?string,page:int,per_page:int} $filters
      */
@@ -53,7 +57,13 @@ class StudentMonitoringQueryService
 
         return $examRows
             ->merge($dailyRows)
-            ->sortByDesc('answered_at')
+            ->sortByDesc('detail_sort_key')
+            ->values()
+            ->map(function (array $row): array {
+                unset($row['detail_sort_key']);
+
+                return $row;
+            })
             ->values();
     }
 
@@ -216,41 +226,64 @@ class StudentMonitoringQueryService
      */
     private function loadExamDetails(User $student, array $filters): Collection
     {
-        $answers = ExamAnswer::query()
-            ->whereHas('examSession', function (Builder $query) use ($student, $filters): void {
-                $query->where('user_id', $student->id)
-                    ->whereIn('status', [ExamStatus::Completed, ExamStatus::TimedOut])
-                    ->whereNotNull('completed_at')
-                    ->whereBetween('completed_at', [
-                        CarbonImmutable::parse($filters['from'])->startOfDay(),
-                        CarbonImmutable::parse($filters['to'])->endOfDay(),
-                    ]);
-            })
-            ->with([
-                'examSession:id,completed_at',
-                'question:id,question_text',
-                'question.options:id,question_id,option_text,is_correct',
-                'selectedOption:id,option_text',
+        $sessions = ExamSession::query()
+            ->where('user_id', $student->id)
+            ->whereIn('status', [ExamStatus::Completed, ExamStatus::TimedOut])
+            ->whereNotNull('completed_at')
+            ->whereBetween('completed_at', [
+                CarbonImmutable::parse($filters['from'])->startOfDay(),
+                CarbonImmutable::parse($filters['to'])->endOfDay(),
             ])
-            ->orderByDesc('answered_at')
+            ->with([
+                'feedback:id,exam_session_id,completion_message,ai_status,rating,testimonial,submitted_at',
+                'sessionQuestions' => function ($query): void {
+                    $query->select(['id', 'exam_session_id', 'question_id', 'order', 'expected_duration_seconds'])
+                        ->with([
+                            'question:id,type,question_text',
+                            'question.options:id,question_id,option_text,is_correct,order',
+                            'answer:id,exam_session_question_id,selected_option_id,answer_text,is_correct,answered_at',
+                            'answer.selectedOption:id,option_text',
+                        ])
+                        ->orderBy('order');
+                },
+            ])
+            ->orderByDesc('completed_at')
             ->get()
             ->toBase();
 
-        return $answers->map(function (ExamAnswer $answer): array {
-            $correctOption = $answer->question
-                ? $answer->question->options->firstWhere('is_correct', true)
-                : null;
+        $rows = collect();
 
-            return [
-                'source' => 'exam',
-                'attempt_label' => 'Exam Session #'.$answer->exam_session_id,
-                'question' => $answer->question?->question_text,
-                'selected_option' => $answer->selectedOption?->option_text,
-                'correct_option' => $correctOption?->option_text,
-                'is_correct' => (bool) $answer->is_correct,
-                'answered_at' => $answer->answered_at?->toDateTimeString(),
-            ];
-        })->values();
+        foreach ($sessions as $session) {
+            $completedTs = $session->completed_at?->getTimestamp() ?? 0;
+            $feedback = $session->feedback;
+
+            foreach ($this->questionReviewBuilder->forSession($session) as $review) {
+                $answeredAt = $review['answered_at'] !== null
+                    ? \Carbon\Carbon::parse($review['answered_at'])->toDateTimeString()
+                    : null;
+
+                $rows->push([
+                    'source' => 'exam',
+                    'exam_session_id' => (int) $session->id,
+                    'attempt_label' => 'Exam Session #'.$session->id,
+                    'question' => $review['question_text'],
+                    'question_type' => $review['question_type'],
+                    'student_answer' => $review['student_answer'],
+                    'correct_answer' => $review['correct_answer'],
+                    'is_correct' => $review['is_correct'],
+                    'answered_at' => $answeredAt,
+                    'session_completed_at' => $session->completed_at?->toDateTimeString(),
+                    'completion_message' => $feedback?->completion_message,
+                    'ai_status' => $feedback?->ai_status?->value,
+                    'rating' => $feedback?->rating,
+                    'testimonial' => $feedback?->testimonial,
+                    'feedback_submitted_at' => $feedback?->submitted_at?->toDateTimeString(),
+                    'detail_sort_key' => ($completedTs * 10_000) - (int) $review['order'],
+                ]);
+            }
+        }
+
+        return $rows->values();
     }
 
     /**
@@ -266,7 +299,7 @@ class StudentMonitoringQueryService
             })
             ->with([
                 'log:id,user_id,activity_date',
-                'question:id,question_text',
+                'question:id,type,question_text',
                 'question.options:id,question_id,option_text,is_correct',
                 'selectedOption:id,option_text',
             ])
@@ -279,14 +312,26 @@ class StudentMonitoringQueryService
                 ? $answer->question->options->firstWhere('is_correct', true)
                 : null;
 
+            $answeredAt = $answer->answered_at?->toDateTimeString();
+            $answeredTs = $answer->answered_at?->getTimestamp() ?? 0;
+
             return [
                 'source' => 'daily',
+                'exam_session_id' => null,
                 'attempt_label' => 'Daily Activity '.$answer->log?->activity_date?->format('Y-m-d'),
                 'question' => $answer->question?->question_text,
-                'selected_option' => $answer->selectedOption?->option_text,
-                'correct_option' => $correctOption?->option_text,
+                'question_type' => $answer->question?->type?->value ?? 'unknown',
+                'student_answer' => $answer->selectedOption?->option_text ?? '—',
+                'correct_answer' => $correctOption?->option_text,
                 'is_correct' => (bool) $answer->is_correct,
-                'answered_at' => $answer->answered_at?->toDateTimeString(),
+                'answered_at' => $answeredAt,
+                'session_completed_at' => null,
+                'completion_message' => null,
+                'ai_status' => null,
+                'rating' => null,
+                'testimonial' => null,
+                'feedback_submitted_at' => null,
+                'detail_sort_key' => $answeredTs * 10_000,
             ];
         })->values();
     }
